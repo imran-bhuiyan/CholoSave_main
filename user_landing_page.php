@@ -7,6 +7,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 include 'includes/header2.php'; 
 
+
 ?>
 
 

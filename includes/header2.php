@@ -87,9 +87,9 @@
                         <div class="absolute left-0 w-48 bg-white shadow-lg rounded-md hidden group-hover:block">
                             <a href="/test_project/create_group.php"
                                 class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Create Group</a>
-                            <a href="/test_project/view_groups.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">View
-                                Group</a>
-                            <a href="/test_project/my_group.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Group</a>
+                            <!-- <a href="/test_project/view_groups.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">View
+                                Group</a> -->
+                            <a href="/test_project/groups.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Group</a>
                         </div>
                     </div>
 

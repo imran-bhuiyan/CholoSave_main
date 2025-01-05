@@ -20,6 +20,9 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
 ?>
 
 
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -191,7 +194,7 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
                         <i class="fas fa-wallet w-6"></i>
                         <span>Withdraw Request</span>
                     </a>
-                    <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
+                    <a href="http://localhost/test_project/group_exit.php" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
                         <i class="fas fa-sign-out-alt w-6"></i>
                         <span>Exit</span>
                     </a>
@@ -279,11 +282,6 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
                 </div>
 
 
-                <!-- Contribution Section -->
-                <!-- <div class="bg-white p-6 rounded-lg shadow mb-6">
-                    <h2 class="text-xl font-semibold mb-4">Contribution</h2>
-                    <canvas id="contributionChart"></canvas>
-                </div> -->
 
 
                 <!-- Polls Section -->
@@ -370,45 +368,7 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
             animateCounter(document.getElementById('members-counter'), 24);
             animateCounter(document.getElementById('fund-counter'), 10000, 2000, '$');
 
-            // // Initialize contribution chart
-            // const ctx = document.getElementById('contributionChart').getContext('2d');
-            // new Chart(ctx, {
-            //     type: 'bar',
-            //     data: {
-            //         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-            //         datasets: [{
-            //             label: 'Monthly Contribution',
-            //             data: [1200, 1500, 1000, 1800, 1300, 2000, 1600],
-            //             backgroundColor: '#EC4899',
-            //             borderColor: '#EC4899',
-            //             borderWidth: 1
-            //         }]
-            //     },
-            //     options: {
-            //         responsive: true,
-            //         maintainAspectRatio: false,
-            //         scales: {
-            //             y: {
-            //                 beginAtZero: true,
-            //                 grid: {
-            //                     color: '#f0f0f0'
-            //                 }
-            //             },
-            //             x: {
-            //                 grid: {
-            //                     display: false
-            //                 }
-            //             }
-            //         },
-            //         plugins: {
-            //             legend: {
-            //                 display: true,
-            //                 position: 'top'
-            //             }
-            //         }
-            //     }
-            // });
-
+          
             // Animate poll bars
             document.querySelectorAll('.poll-option').forEach(option => {
                 const bar = option.querySelector('.bg-blue-500');
@@ -419,22 +379,7 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
             });
         });
 
-        // // Mobile menu toggle with animation
-        // document.getElementById('menu-button').addEventListener('click', () => {
-        //     const sidebar = document.getElementById('sidebar');
-        //     sidebar.classList.toggle('hidden');
-        //     if (!sidebar.classList.contains('hidden')) {
-        //         sidebar.classList.add('slide-in');
-        //         sidebar.classList.add('absolute');
-        //         sidebar.classList.add('z-50');
-        //         sidebar.classList.add('h-screen');
-        //         sidebar.classList.add('w-64');
-        //         sidebar.classList.add('bg-white');
-        //     } else {
-        //         sidebar.classList.remove('slide-in');
-        //         sidebar.classList.remove('absolute');
-        //     }
-        // });
+      
 
         // Dark mode functionality
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -466,17 +411,7 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
             updateTheme();
         });
 
-        // // Enhanced mobile responsiveness
-        // const handleResize = () => {
-        //     const sidebar = document.getElementById('sidebar');
-        //     if (window.innerWidth >= 768) {
-        //         sidebar.classList.remove('hidden', 'absolute', 'z-50');
-        //     } else {
-        //         sidebar.classList.add('hidden');
-        //         sidebar.classList.remove('absolute', 'z-50');
-        //     }
-        // };
-
+      
         window.addEventListener('resize', handleResize);
         handleResize();
 

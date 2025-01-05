@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Please fill in all required fields.");
         }
 
+        // Insert into my_group table to create the group
         $query = "INSERT INTO my_group (
             group_name, description, members, group_admin_id, dps_type, 
             time_period, amount, start_date, goal_amount, warning_time, 
@@ -51,17 +52,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         if ($stmt->execute()) {
-            $success_message = "Group created successfully!";
-            header("Location: /test_project/group_member/group_dashboard.php");
-            exit();
+            // Get the last inserted group_id
+            $group_id = $stmt->insert_id;
+    
+            // Store the group_id in the session
+            $_SESSION['group_id'] = $group_id;
+    
+            // Insert the user into the group_membership table with status 'approved' and is_admin = 1
+            $membershipQuery = "INSERT INTO group_membership (group_id, user_id, status, is_admin, join_date) VALUES (?, ?, 'approved', 1, NOW())";
+            $membershipStmt = $conn->prepare($membershipQuery);
+            $membershipStmt->bind_param("ii", $group_id, $_SESSION['user_id']);
+            
+            if ($membershipStmt->execute()) {
+                // Role-checking logic
+                $query = "SELECT is_admin FROM group_membership WHERE group_id = ? AND user_id = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("ii", $group_id, $_SESSION['user_id']);
+                $stmt->execute();
+                $stmt->store_result();
+                
+                if ($stmt->num_rows > 0) {
+                    $stmt->bind_result($is_admin);
+                    $stmt->fetch();
+    
+                    // Redirect based on role
+                    if ($is_admin) {
+                        header("Location: /test_project/group_admin/group_admin_dashboard.php?group_id=" . $group_id);
+                    } else {
+                        header("Location: /test_project/group_member/group_dashboard.php?group_id=" . $group_id);
+                    }
+                    exit();
+                } else {
+                    throw new Exception("Failed to retrieve user role.");
+                }
+            } else {
+                throw new Exception("Error adding admin to group: " . $conn->error);
+            }
         } else {
             throw new Exception("Error creating group: " . $conn->error);
         }
     } catch (Exception $e) {
+        // Handle error
         $error_message = $e->getMessage();
-    }
+        header("Location: error_page.php?error=" . urlencode($error_message));
+        exit();
+    }   
 }
 ?>
+
 
 <?php include 'includes/header2.php'; ?>
 <!DOCTYPE html>
