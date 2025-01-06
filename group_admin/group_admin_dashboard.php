@@ -8,7 +8,6 @@ if (!isset($_SESSION['group_id'])) {
 
 $group_id = $_SESSION['group_id'];
 $user_id = $_SESSION['user_id'];
-
 if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
     $group_id = $_SESSION['group_id'];
     $user_id = $_SESSION['user_id'];
@@ -17,11 +16,45 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
 } else {
     echo 'Group ID is not set in the session.';
 }
+
+if (!isset($conn)) {
+    include 'db.php'; // Ensure database connection
+}
+
+// Queries
+$total_group_savings_query = "SELECT IFNULL(SUM(amount), 0) AS total_group_savings FROM savings WHERE group_id = ?";
+$month_savings_query = "SELECT IFNULL(SUM(amount), 0) AS this_month_savings FROM savings WHERE group_id = ? AND MONTH(created_at) = MONTH(CURRENT_DATE)";
+$total_members_query = "SELECT COUNT(*) AS total_members FROM group_membership WHERE group_id = ? AND status = 'approved'";
+$new_members_query = "SELECT COUNT(*) AS new_members FROM group_membership WHERE group_id = ? AND status = 'approved' AND MONTH(join_date) = MONTH(CURRENT_DATE)";
+$emergency_query = "SELECT emergency_fund FROM my_group WHERE group_id = ?";
+
+// Fetch Data
+function fetchSingleValue($conn, $query, $param)
+{
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $param);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    return array_values($row)[0]; // Return the first value
+}
+
+$total_group_savings = fetchSingleValue($conn, $total_group_savings_query, $group_id);
+echo "Total Group Savings: $total_group_savings"; // Debug output
+
+$this_month_savings = fetchSingleValue($conn, $month_savings_query, $group_id);
+echo "This Month's Savings: $this_month_savings"; // Debug output
+
+$total_members = fetchSingleValue($conn, $total_members_query, $group_id);
+echo "Total Members: $total_members"; // Debug output
+
+$new_members = fetchSingleValue($conn, $new_members_query, $group_id);
+echo "New Members This Month: $new_members"; // Debug output
+
+$emergency_fund = fetchSingleValue($conn, $emergency_query, $group_id);
+echo "Emergency Fund: $emergency_fund"; // Debug output
+
 ?>
-
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -33,183 +66,13 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style>
-        .sidebar-item {
-            transition: all 0.3s ease;
-        }
-
-        .sidebar-item:hover {
-            transform: translateX(10px);
-        }
-
-        .stats-card {
-            transition: all 0.3s ease;
-        }
-
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .contribution-bar {
-            transition: height 1s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(-100%);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .slide-in {
-            animation: slideIn 0.5s ease-out;
-        }
-
-        /* Dark mode transitions */
-        .dark-mode-transition {
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        body.dark-mode {
-            background-color: #1a1a1a;
-            color: #ffffff;
-        }
-
-        body.dark-mode #sidebar,
-        body.dark-mode .stats-card,
-        body.dark-mode header,
-        body.dark-mode .bg-white {
-            background-color: #2d2d2d;
-            color: #ffffff;
-        }
-
-        body.dark-mode .text-gray-500,
-        body.dark-mode .text-gray-600,
-        body.dark-mode .text-gray-700 {
-            color: #a0aec0;
-        }
-
-        body.dark-mode .hover\:bg-gray-100:hover {
-            background-color: #3d3d3d;
-        }
-
-        body.dark-mode .bg-gray-200 {
-            background-color: #4a4a4a;
-        }
-
-        body.dark-mode .shadow {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        }
-
-        body.dark-mode ::-webkit-scrollbar-track {
-            background: #2d2d2d;
-        }
-
-        body.dark-mode ::-webkit-scrollbar-thumb {
-            background: #666;
-        }
-
-        body.dark-mode ::-webkit-scrollbar-thumb:hover {
-            background: #888;
-        }
-
-        #contributionChart {
-            height: 300px !important;
-        }
-    </style>
-    </style>
+    <link rel="stylesheet" type="text/css" href="group_admin_dashboard_style.css">
 </head>
 
 <body class="bg-gray-100 dark-mode-transition">
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <div id="sidebar" class="hidden md:flex flex-col w-64 bg-white shadow-lg dark-mode-transition">
-            <div class="p-4 border-b">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-leaf text-green-500"></i>
-                    <span class="text-xl font-semibold">CholoSave</span>
-                </div>
-            </div>
-
-            <nav class="flex-1 p-4">
-                <div class="space-y-2">
-                    <a href="#" class="sidebar-item flex items-center p-3 text-gray-700 bg-gray-100 rounded-lg">
-                        <i class="fas fa-chart-line w-6"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <i class="fas fa-hand-holding-dollar w-6"></i>
-                        <span>Emergency Loan Request</span>
-                    </a>
-                    <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <i class="fas fa-comments w-6"></i>
-                        <span>Chats</span>
-                    </a>
-                    <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <i class="fas fa-users w-6"></i>
-                        <span>Members</span>
-                    </a>
-                    <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <i class="fas fa-credit-card w-6"></i>
-                        <span>Payment</span>
-                    </a>
-                    <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <i class="fas fa-calendar-day w-6"></i>
-                        <span>Leave Request</span>
-                    </a>
-                    <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <i class="fas fa-history w-6"></i>
-                        <span>Loan History</span>
-                    </a>
-                    <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <i class="fas fa-history w-6"></i>
-                        <span>Payment History</span>
-                    </a>
-                    <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <i class="fas fa-wallet w-6"></i>
-                        <span>Withdraw Request</span>
-                    </a>
-                    <a href="http://localhost/test_project/group_exit.php" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <i class="fas fa-sign-out-alt w-6"></i>
-                        <span>Exit</span>
-                    </a>
-                </div>
-            </nav>
-
-            <!-- Theme Toggle -->
-            <div class="p-4 border-t">
-                <button id="theme-toggle"
-                    class="flex items-center justify-center w-full p-2 rounded-lg hover:bg-gray-100">
-                    <i class="fas fa-moon mr-2"></i>
-                    <span>Dark Mode</span>
-                </button>
-            </div>
-        </div>
+        <?php include 'sidebar.php'; ?>
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
@@ -220,9 +83,9 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
                         class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
                         <i class="fas fa-bars"></i>
                     </button>
-                    
-                    <div><h1 class="text-5xl font-semibold ml-96 ">Dashboard</h1></div>
-                    
+                    <div>
+                        <h1 class="text-5xl font-semibold ml-96 ">Dashboard</h1>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-4">
                     <button class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
@@ -242,8 +105,10 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
                         <div class="flex justify-between items-center">
                             <div>
                                 <h3 class="text-gray-500">Total Savings</h3>
-                                <p class="text-2xl font-bold" id="savings-counter">$0</p>
-                                <p class="text-green-500 text-sm">+12.5% this month</p>
+                                <p class="text-2xl font-bold" id="savings-counter">
+                                    $<?php echo number_format($total_group_savings, 2); ?></p>
+                                <p class="text-green-500 text-sm">+$<?php echo number_format($this_month_savings, 2); ?>
+                                    this month</p>
                             </div>
                             <div class="text-2xl text-gray-400">
                                 <i class="fas fa-dollar-sign"></i>
@@ -255,8 +120,8 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
                         <div class="flex justify-between items-center">
                             <div>
                                 <h3 class="text-gray-500">Members</h3>
-                                <p class="text-2xl font-bold" id="members-counter">0</p>
-                                <p class="text-green-500 text-sm">+2 new this month</p>
+                                <p class="text-2xl font-bold" id="members-counter"><?php echo $total_members; ?></p>
+                                <p class="text-green-500 text-sm">+<?php echo $new_members; ?> new this month</p>
                             </div>
                             <div class="text-2xl text-gray-400">
                                 <i class="fas fa-users"></i>
@@ -268,7 +133,8 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
                         <div class="flex justify-between items-center">
                             <div>
                                 <h3 class="text-gray-500">Emergency Fund</h3>
-                                <p class="text-2xl font-bold" id="fund-counter">$0</p>
+                                <p class="text-2xl font-bold" id="fund-counter">
+                                    $<?php echo number_format($emergency_fund, 2); ?></p>
                             </div>
                             <div class="text-2xl text-gray-400">
                                 <i class="fas fa-piggy-bank"></i>
@@ -277,15 +143,14 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
                     </div>
                 </div>
 
+
                 <div class="h-96">
 
                 </div>
 
-
-
-
                 <!-- Polls Section -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <?php include 'polls.php'; ?>
+                <!-- <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-white p-6 rounded-lg shadow">
                         <h3 class="font-semibold mb-4">New member 'Afnan' wants to join</h3>
                         <div class="space-y-4">
@@ -337,7 +202,7 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </main>
         </div>
     </div>
@@ -363,23 +228,27 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
 
         // Initialize animations
         document.addEventListener('DOMContentLoaded', () => {
-            // Animate counters
-            animateCounter(document.getElementById('savings-counter'), 45850, 2000, '$');
-            animateCounter(document.getElementById('members-counter'), 24);
-            animateCounter(document.getElementById('fund-counter'), 10000, 2000, '$');
+            // PHP values dynamically passed to JavaScript
+            const totalSavings = <?php echo json_encode($total_group_savings); ?>;
+            const totalMembers = <?php echo json_encode($total_members); ?>;
+            const emergencyFund = <?php echo json_encode($emergency_fund); ?>;
 
-          
-            // Animate poll bars
-            document.querySelectorAll('.poll-option').forEach(option => {
-                const bar = option.querySelector('.bg-blue-500');
-                const percentage = option.querySelector('.text-gray-500').textContent;
-                setTimeout(() => {
-                    bar.style.width = percentage;
-                }, 500);
-            });
+            // Animate counters
+            animateCounter(document.getElementById('savings-counter'), totalSavings, 2000, '$');
+            animateCounter(document.getElementById('members-counter'), totalMembers);
+            animateCounter(document.getElementById('fund-counter'), emergencyFund, 2000, '$');
+
+                // Animate poll bars
+                document.querySelectorAll('.poll-option').forEach(option => {
+                    const bar = option.querySelector('.bg-blue-500');
+                    const percentage = option.querySelector('.text-gray-500').textContent;
+                    setTimeout(() => {
+                        bar.style.width = percentage;
+                    }, 500);
+                });
         });
 
-      
+
 
         // Dark mode functionality
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -411,7 +280,7 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
             updateTheme();
         });
 
-      
+
         window.addEventListener('resize', handleResize);
         handleResize();
 

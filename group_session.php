@@ -43,7 +43,7 @@ if (isset($_POST['group_id']) && isset($_SESSION['user_id'])) {
         $stmt->close();  // Close the statement
     } else {
         // If query fails to prepare
-        header("Location: error_page.php");
+        header("Location: http://localhost/test_project/error_page.php");
         exit;
     }
 } else {
