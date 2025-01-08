@@ -171,7 +171,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
                     <h1 class="text-5xl font-semibold custom-font">
-                        <i class="fa-solid fa-money-bill-transfer mr-3">X</i>
+                        <i class="fa-solid fa-money-bill-transfer mr-3"></i>
+                        Loan Request
 
                     </h1>
                 </div>
@@ -209,6 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </div>
                                     <!-- Error message for amount -->
                                     <div id="amountError" class="text-red-500 text-sm mt-2">
+
                                         <?php echo isset($errors['amount']) ? $errors['amount'] : ''; ?>
                                     </div>
                                 </div>
@@ -286,8 +288,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <?php echo isset($errors['returnDate']) ? $errors['returnDate'] : ''; ?>
                                 </div>
                             </div>
+                            <!-- Terms and Conditions Acceptance -->
+                            <div class="mb-6">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="terms" name="terms"
+                                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        required>
+                                    <label for="terms" class="ml-2 block text-sm text-gray-700">
+                                        I agree to the <a href="terms_and_condition.php" target="_blank"
+                                            class="text-blue-600 hover:text-blue-800 underline">Terms and Conditions</a>
+                                    </label>
+                                </div>
+                                <!-- Error message for terms -->
+                                <div id="termsError" class="text-red-500 text-sm mt-2">
+                                    <?php echo isset($errors['terms']) ? $errors['terms'] : ''; ?>
+                                </div>
+                            </div>
 
                     </div>
+
+
 
                     <!-- Submit Button -->
                     <div class="pt-4">
@@ -348,6 +368,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 });
             });
         });
+
     </script>
 </body>
 

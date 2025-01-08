@@ -24,7 +24,7 @@
                 <i class="fas fa-users w-6"></i>
                 <span>Members</span>
             </a>
-            <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
+            <a href="/test_project/group_member/group_member_payment.php" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
                 <i class="fas fa-credit-card w-6"></i>
                 <span>Payment</span>
             </a>
@@ -32,15 +32,15 @@
                 <i class="fas fa-calendar-day w-6"></i>
                 <span>Leave Request</span>
             </a>
-            <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
+            <a href="/test_project/group_member/group_member_loan_history.php" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
                 <i class="fas fa-history w-6"></i>
                 <span>Loan History</span>
             </a>
-            <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
+            <a href="/test_project/group_member/group_member_payment_history.php" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
                 <i class="fas fa-history w-6"></i>
                 <span>Payment History</span>
             </a>
-            <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
+            <a href="/test_project/group_member/group_member_withdraw_request.php" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
                 <i class="fas fa-wallet w-6"></i>
                 <span>Withdraw Request</span>
             </a>
