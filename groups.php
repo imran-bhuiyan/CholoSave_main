@@ -12,7 +12,6 @@ if (!isLoggedIn()) {
 
 $user_id = getUserId();
 
-// Handle join request
 if (isset($_POST['join_group'])) {
     $group_id = $_POST['group_id'];
     
@@ -38,8 +37,27 @@ if (isset($_POST['join_group'])) {
         $stmt = $conn->prepare($joinQuery);
         $stmt->bind_param("ii", $user_id, $group_id);
         if ($stmt->execute()) {
-            $_SESSION['message'] = "Join request sent successfully! Please wait for approval.";
-            $_SESSION['message_type'] = "success";
+            // Create poll after join request
+            // Fetch the member's name
+            $getMemberNameQuery = "SELECT name FROM users WHERE id = ?";
+            $stmt = $conn->prepare($getMemberNameQuery);
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $memberName = '';
+            if ($result && $row = $result->fetch_assoc()) {
+                $memberName = $row['name'];
+            }
+
+            // Insert poll into polls table
+            $pollQuestion = "{$memberName} wants to join the group. Do you approve?";
+            $insertPollQuery = "INSERT INTO polls (group_id, poll_question) VALUES (?, ?)";
+            $stmt = $conn->prepare($insertPollQuery);
+            $stmt->bind_param("is", $group_id, $pollQuestion);
+            if ($stmt->execute()) {
+                $_SESSION['message'] = "Join request sent successfully! Please wait for approval.";
+                $_SESSION['message_type'] = "success";
+            }
         }
     }
 }

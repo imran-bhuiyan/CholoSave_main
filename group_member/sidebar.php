@@ -8,11 +8,11 @@
 
     <nav class="flex-1 p-4">
         <div class="space-y-2">
-            <a href="#" class="sidebar-item flex items-center p-3 text-gray-700 bg-gray-100 rounded-lg">
+            <a href="/test_project/group_member/group_member_dashboard.php" class="sidebar-item flex items-center p-3 text-gray-700 rounded-lg">
                 <i class="fas fa-chart-line w-6"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
+            <a href="/test_project/group_member/group_member_emergency_loan_req.php" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
                 <i class="fas fa-hand-holding-dollar w-6"></i>
                 <span>Emergency Loan Request</span>
             </a>
@@ -20,7 +20,7 @@
                 <i class="fas fa-comments w-6"></i>
                 <span>Chats</span>
             </a>
-            <a href="#" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
+            <a href="/test_project/group_member/group_member_list.php" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
                 <i class="fas fa-users w-6"></i>
                 <span>Members</span>
             </a>

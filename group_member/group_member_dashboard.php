@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['group_id'])) {
-    header("Location: error_page.php"); // Redirect if group_id is not set
+    header("Location: /test_project/error_page.php"); // Redirect if group_id is not set
     exit;
 }
 
@@ -64,9 +64,14 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enhanced CholoSave Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" type="text/css" href="group_member_dashboard_style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" type="text/css" href="group_admin_dashboard_style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        .custom-font {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 dark-mode-transition">
@@ -78,23 +83,24 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
         <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Top Bar -->
             <header class="flex items-center justify-between p-4 bg-white shadow dark-mode-transition">
-                <div class="flex items-center">
+                <div class="flex items-center justify-center w-full">
                     <button id="menu-button"
-                        class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-                        <i class="fas fa-bars"></i>
+                        class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 absolute left-2">
+                        <i class="fa-solid fa-bars text-xl"></i>
                     </button>
-                    <div>
-                        <h1 class="text-5xl font-semibold ml-96 ">Dashboard</h1>
-                    </div>
+                    <h1 class="text-5xl font-semibold custom-font">
+                        <i class="fa-solid fa-money-bill-transfer mr-3"></i>
+                        Dashboard
+                    </h1>
                 </div>
-                <div class="flex items-center space-x-4">
+                <!-- <div class="flex items-center space-x-4">
                     <button class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
                         <i class="fas fa-bell"></i>
                     </button>
                     <button class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
                         <i class="fas fa-user-circle"></i>
                     </button>
-                </div>
+                </div> -->
             </header>
 
             <!-- Main Content Area -->
@@ -238,14 +244,14 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
             animateCounter(document.getElementById('members-counter'), totalMembers);
             animateCounter(document.getElementById('fund-counter'), emergencyFund, 2000, '$');
 
-                // Animate poll bars
-                document.querySelectorAll('.poll-option').forEach(option => {
-                    const bar = option.querySelector('.bg-blue-500');
-                    const percentage = option.querySelector('.text-gray-500').textContent;
-                    setTimeout(() => {
-                        bar.style.width = percentage;
-                    }, 500);
-                });
+            // Animate poll bars
+            document.querySelectorAll('.poll-option').forEach(option => {
+                const bar = option.querySelector('.bg-blue-500');
+                const percentage = option.querySelector('.text-gray-500').textContent;
+                setTimeout(() => {
+                    bar.style.width = percentage;
+                }, 500);
+            });
         });
 
 

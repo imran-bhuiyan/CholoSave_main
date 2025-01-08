@@ -31,7 +31,7 @@ if (isset($_POST['group_id']) && isset($_SESSION['user_id'])) {
                 header("Location: /test_project/group_admin/group_admin_dashboard.php?group_id=" . $group_id);
             } else {
                 // If the user is a member, redirect to the member page
-                header("Location: /test_project/group_member/group_dashboard.php?group_id=" . $group_id);
+                header("Location: /test_project/group_member/group_member_dashboard.php");
             }
             exit;
         } else {
