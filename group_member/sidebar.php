@@ -24,7 +24,7 @@
                 <i class="fas fa-users w-6"></i>
                 <span>Members</span>
             </a>
-            <a href="/test_project/group_member/group_member_payment.php" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
+            <a href="/test_project/group_member/payment-page.php" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
                 <i class="fas fa-credit-card w-6"></i>
                 <span>Payment</span>
             </a>

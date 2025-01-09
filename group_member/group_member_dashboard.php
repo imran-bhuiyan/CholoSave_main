@@ -55,39 +55,39 @@ $emergency_fund = fetchSingleValue($conn, $emergency_query, $group_id);
 echo "Emergency Fund: $emergency_fund"; // Debug output
 
 
-//Graph or chart showing code //
+
 // Get last 4 months of savings data
-$query = "
-    SELECT 
-        DATE_FORMAT(created_at, '%b') as month,
-        SUM(amount) as total_amount
-    FROM savings 
-    WHERE group_id = ? 
-    AND created_at >= DATE_SUB(NOW(), INTERVAL 4 MONTH)
-    GROUP BY YEAR(created_at), MONTH(created_at)
-    ORDER BY created_at DESC
-    LIMIT 4
-";
+// $query = "
+//     SELECT 
+//         DATE_FORMAT(created_at, '%b') as month,
+//         SUM(amount) as total_amount
+//     FROM savings 
+//     WHERE group_id = ? 
+//     AND created_at >= DATE_SUB(NOW(), INTERVAL 4 MONTH)
+//     GROUP BY YEAR(created_at), MONTH(created_at)
+//     ORDER BY created_at DESC
+//     LIMIT 4
+// ";
 
-$stmt = $conn->prepare($query);
-$stmt->bind_param("i", $group_id);
-$stmt->execute();
-$result = $stmt->get_result();
+// $stmt = $conn->prepare($query);
+// $stmt->bind_param("i", $group_id);
+// $stmt->execute();
+// $result = $stmt->get_result();
 
-// Store the data in an array
-$data = [];
-while ($row = $result->fetch_assoc()) {
-    $data[] = $row;
-}
+// // Store the data in an array
+// $data = [];
+// while ($row = $result->fetch_assoc()) {
+//     $data[] = $row;
+// }
 
-// Reverse array to show oldest to newest
-$data = array_reverse($data);
+// // Reverse array to show oldest to newest
+// $data = array_reverse($data);
 
-// Find the maximum amount for scaling
-$max_amount = 0;
-foreach ($data as $row) {
-    $max_amount = max($max_amount, $row['total_amount']);
-}
+// // Find the maximum amount for scaling
+// $max_amount = 0;
+// foreach ($data as $row) {
+//     $max_amount = max($max_amount, $row['total_amount']);
+// }
 
 ?>
 
@@ -185,40 +185,9 @@ foreach ($data as $row) {
                 </div>
 
 <!-- Graph or chart showing code -->
-                <div class="h-96 w-1/2 p-8 bg-white rounded-lg shadow-lg">
-                    <h2 class="text-xl font-bold mb-6 text-gray-800">Monthly Savings</h2>
-
-                    <div class="flex items-end h-64 space-x-6 mb-4">
-                        <?php foreach ($data as $month_data): ?>
-                            <?php
-                            // Calculate height percentage
-                            $height_percentage = ($month_data['total_amount'] / $max_amount) * 100;
-                            ?>
-                            <div class="flex flex-col items-center flex-1">
-                                <div class="w-full bg-blue-500 hover:bg-blue-600 rounded-t-lg transition-all duration-300"
-                                    style="height: <?php echo $height_percentage; ?>%;">
-                                    <div class="text-white text-center -mt-6">
-                                        $<?php echo number_format($month_data['total_amount'], 2); ?>
-                                    </div>
-                                </div>
-                                <div class="text-sm text-gray-600 mt-2">
-                                    <?php echo $month_data['month']; ?>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-
-                    <!-- Y-axis labels -->
-                    <div class="flex justify-between text-sm text-gray-600 px-2">
-                        <?php
-                        $steps = 5;
-                        for ($i = 0; $i <= $steps; $i++) {
-                            $value = ($max_amount / $steps) * $i;
-                            echo "<div class='w-full border-t border-gray-200 pt-2 text-center'>$" . number_format($value, 0) . "</div>";
-                        }
-                        ?>
-                    </div>
-                </div>
+          
+                <?php include 'dashboard_graph.php'; ?>
+                
 
                 <!-- Polls Section -->
                 <?php include 'polls.php'; ?>
