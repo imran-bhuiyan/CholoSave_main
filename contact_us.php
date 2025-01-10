@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <!-- Contact Details Section -->
     <section class="contact-details text-center max-w-4xl mx-auto px-4">
-        <h2 class="text-3xl font-semibold text-gray-800 mb-6">Our Office</h2>
+        <!-- <h2 class="text-3xl font-semibold text-gray-800 mb-6">Our Office</h2>
         <div class="flex justify-center space-x-12 text-gray-700">
             <div class="flex flex-col items-center">
                 <h3 class="text-xl font-medium text-gray-800">Address</h3>
@@ -89,7 +89,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <h3 class="text-xl font-medium text-gray-800">Email</h3>
                 <p class="mt-2">contact@cholosave.com</p>
             </div>
-        </div>
+        </div> -->
+
+        <?php include 'home_load.php'; ?>
     </section>
 </main>
 

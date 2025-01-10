@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-
 $group_id = $_SESSION['group_id'];
 $user_id = $_SESSION['user_id'];
 if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {

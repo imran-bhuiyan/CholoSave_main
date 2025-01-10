@@ -28,7 +28,7 @@ if (isset($_POST['group_id']) && isset($_SESSION['user_id'])) {
 
             // If the user is an admin, redirect to the admin page
             if ($is_admin) {
-                header("Location: /test_project/group_admin/group_admin_dashboard.php?group_id=" . $group_id);
+                header("Location: /test_project/group_admin/group_admin_dashboard.php");
             } else {
                 // If the user is a member, redirect to the member page
                 header("Location: /test_project/group_member/group_member_dashboard.php");

@@ -9,18 +9,33 @@ if (!isset($_SESSION['group_id'])) {
 $group_id = $_SESSION['group_id'];
 $user_id = $_SESSION['user_id'];
 
-if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
-    $group_id = $_SESSION['group_id'];
-    $user_id = $_SESSION['user_id'];
-    echo 'This is group id: ' . htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8');
-    echo 'This is user id: ' . htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8');
-} else {
-    echo 'Group ID is not set in the session.';
-}
-
 if (!isset($conn)) {
     include 'db.php'; // Ensure database connection
 }
+
+// Check if the user is an admin
+$is_admin_query = "SELECT is_admin FROM group_membership WHERE group_id = ? AND user_id = ?";
+function fetchSingleValue($conn, $query, $params, $types = "i")
+{
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    return array_values($row)[0] ?? null; // Return the first value, or null if no result
+}
+
+$is_admin = fetchSingleValue($conn, $is_admin_query, [$group_id, $user_id], "ii");
+
+// Redirect non-admins to the error page
+if (!$is_admin) {
+    header("Location: /test_project/error_page.php");
+    exit;
+}
+
+// If the user is an admin, continue with the rest of the script
+echo 'This is group id: ' . htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8');
+echo 'This is user id: ' . htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8');
 
 // Queries
 $total_group_savings_query = "SELECT IFNULL(SUM(amount), 0) AS total_group_savings FROM savings WHERE group_id = ?";
@@ -29,35 +44,22 @@ $total_members_query = "SELECT COUNT(*) AS total_members FROM group_membership W
 $new_members_query = "SELECT COUNT(*) AS new_members FROM group_membership WHERE group_id = ? AND status = 'approved' AND MONTH(join_date) = MONTH(CURRENT_DATE)";
 $emergency_query = "SELECT emergency_fund FROM my_group WHERE group_id = ?";
 
-// Fetch Data
-function fetchSingleValue($conn, $query, $param)
-{
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $param);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-    return array_values($row)[0]; // Return the first value
-}
-
-$total_group_savings = fetchSingleValue($conn, $total_group_savings_query, $group_id);
+$total_group_savings = fetchSingleValue($conn, $total_group_savings_query, [$group_id]);
 echo "Total Group Savings: $total_group_savings"; // Debug output
 
-$this_month_savings = fetchSingleValue($conn, $month_savings_query, $group_id);
+$this_month_savings = fetchSingleValue($conn, $month_savings_query, [$group_id]);
 echo "This Month's Savings: $this_month_savings"; // Debug output
 
-$total_members = fetchSingleValue($conn, $total_members_query, $group_id);
+$total_members = fetchSingleValue($conn, $total_members_query, [$group_id]);
 echo "Total Members: $total_members"; // Debug output
 
-$new_members = fetchSingleValue($conn, $new_members_query, $group_id);
+$new_members = fetchSingleValue($conn, $new_members_query, [$group_id]);
 echo "New Members This Month: $new_members"; // Debug output
 
-$emergency_fund = fetchSingleValue($conn, $emergency_query, $group_id);
+$emergency_fund = fetchSingleValue($conn, $emergency_query, [$group_id]);
 echo "Emergency Fund: $emergency_fund"; // Debug output
-
-
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -67,7 +69,7 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enhanced CholoSave Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" type="text/css" href="group_member_dashboard_style.css">
+    <link rel="stylesheet" type="text/css" href="group_admin_dashboard_style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -80,7 +82,7 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
 <body class="bg-gray-100 dark-mode-transition">
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <?php include 'sidebar.php'; ?>
+        <?php include 'group_admin_sidebar.php'; ?>
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
@@ -154,7 +156,7 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
 
 <!-- Graph or chart showing code -->
           
-                <?php include 'dashboard_graph.php'; ?>
+                <?php include 'group_admin_dashboard_graph.php'; ?>
                 
 
                 <!-- Polls Section -->
