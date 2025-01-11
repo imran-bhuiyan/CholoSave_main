@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </head>
-
+ -->
 
 
 <div id="sidebar" class="hidden md:flex flex-col w-64 bg-white shadow-lg dark-mode-transition">
@@ -31,7 +31,7 @@
             <a href="/test_project/group_member/group_member_emergency_loan_req.php"
                 class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
                 <i class="fas fa-hand-holding-dollar w-6"></i>
-                <span>Emergency Loan Request</span>
+                <span>Loan Request</span>
             </a>
             <a href="/test_project/chat/group.php" class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
                 <i class="fas fa-comments w-6"></i>
@@ -72,7 +72,7 @@
                 <i class="fas fa-piggy-bank w-6"></i>
                 <span>Investment Details</span>
             </a>
-            <a href="http://localhost/test_project/group_exit.php"
+            <a href="/test_project/group_exit.php"
                 class="sidebar-item flex items-center p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
                 <i class="fas fa-sign-out-alt w-6"></i>
                 <span>Exit</span>

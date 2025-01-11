@@ -67,7 +67,7 @@ while ($row = $polls_result->fetch_assoc()) {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body class="bg-gray-100 p-6">
-    <div class="container mx-auto mt-6">
+    <div class="container mx-auto mt-6 p-4 ml-8">
         <h1 class="text-3xl font-bold mb-6 -ml-6">Polls</h1>
         <div id="polls-container" class="space-y-6 -ml-10">
             <?php foreach ($polls as $poll): ?>
