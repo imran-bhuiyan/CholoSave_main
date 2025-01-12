@@ -6,7 +6,7 @@ import json
 app = Flask(__name__)
 CORS(app)
 
-GEMINI_API_KEY = "AIzaSyBJeKaPqYT7Z-rJblgkbi9mqDNAEfGtWmw"
+GEMINI_API_KEY = "Gemini_API_Key"
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
 def generate_financial_advice(prompt):
