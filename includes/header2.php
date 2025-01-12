@@ -116,7 +116,7 @@
                         <div class="absolute left-0 w-48 bg-white shadow-lg rounded-md hidden group-hover:block">
                             <a href="/investment-dashboard.php"
                                 class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Dashboard</a>
-                            <a href="/ai-tips.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">AI Tips</a>
+                            <a href="/test_project/ai_tips.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">AI Tips</a>
                         </div>
                     </div>
 
