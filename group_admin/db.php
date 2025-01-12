@@ -2,7 +2,7 @@
 $host = "localhost";
 $username = "root";
 $password = "";
-$dbname = "cholosave_testing";
+$dbname = "cholosave_db";
 
 $conn = new mysqli($host, $username, $password, $dbname);
 

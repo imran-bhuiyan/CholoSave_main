@@ -146,7 +146,7 @@
                             <span>Settings</span>
                         </button>
                         <div class="absolute left-0 w-48 bg-white shadow-lg rounded-md hidden group-hover:block">
-                            <a href="/profile.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My
+                            <a href="/test_project/profile.php" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My
                                 Profile</a>
                             <a href="/test_project/logout.php"
                                 class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>

@@ -12,8 +12,7 @@ $user_id = $_SESSION['user_id'];
 if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
     $group_id = $_SESSION['group_id'];
     $user_id = $_SESSION['user_id'];
-    echo 'This is group id: ' . htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8');
-    echo 'This is user id: ' . htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8');
+   
 } else {
     echo 'Group ID is not set in the session.';
 }
@@ -41,19 +40,19 @@ function fetchSingleValue($conn, $query, $param)
 }
 
 $total_group_savings = fetchSingleValue($conn, $total_group_savings_query, $group_id);
-echo "Total Group Savings: $total_group_savings"; // Debug output
+
 
 $this_month_savings = fetchSingleValue($conn, $month_savings_query, $group_id);
-echo "This Month's Savings: $this_month_savings"; // Debug output
+
 
 $total_members = fetchSingleValue($conn, $total_members_query, $group_id);
-echo "Total Members: $total_members"; // Debug output
+
 
 $new_members = fetchSingleValue($conn, $new_members_query, $group_id);
-echo "New Members This Month: $new_members"; // Debug output
+
 
 $emergency_fund = fetchSingleValue($conn, $emergency_query, $group_id);
-echo "Emergency Fund: $emergency_fund"; // Debug output
+
 
 
 

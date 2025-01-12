@@ -89,8 +89,8 @@
     </div>
 </div>
 
-
 <script>
+    // Add the event listener for the leave request button
     document.getElementById('leaveRequestBtn').addEventListener('click', function (e) {
         e.preventDefault(); // Prevent the default anchor behavior
 

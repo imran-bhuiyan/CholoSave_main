@@ -73,52 +73,68 @@ $progress_percentage = ($goal_amount > 0) ? ($achieved_amount / $goal_amount) * 
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: white;
-    padding: 20px;
-    font-family: sans-serif;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 2rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 }
 
 .stats {
     display: flex;
     justify-content: space-around;
     width: 100%;
-    max-width: 400px;
-    margin-bottom: 20px;
+    max-width: 500px;
+    margin-bottom: 2.5rem;
+    gap: 2rem;
 }
 
 .stat-item {
     text-align: center;
-    padding: 10px;
+    padding: 1.5rem 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease;
+    flex: 1;
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
 }
 
 .stat-label {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .stat-value {
-    font-size: 20px;
-    font-weight: bold;
-    color: #333;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3436;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .gauge {
     width: 100%;
-    max-width: 250px;
+    max-width: 300px;
     position: relative;
-    padding-bottom: 50px;
+    padding-bottom: 60px;
 }
 
 .gauge-body {
     width: 100%;
     height: 0;
     padding-bottom: 50%;
-    background: #e6e6e6;
+    background: #f1f3f5;
     position: relative;
     border-top-left-radius: 100% 200%;
     border-top-right-radius: 100% 200%;
     overflow: hidden;
+    box-shadow: inset 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .gauge-fill {
@@ -127,10 +143,10 @@ $progress_percentage = ($goal_amount > 0) ? ($achieved_amount / $goal_amount) * 
     left: 0;
     width: inherit;
     height: 100%;
-    background:rgb(3, 70, 255);
+    background: linear-gradient(90deg, #4361ee, #3a0ca3);
     transform-origin: center top;
     transform: rotate(0turn);
-    transition: transform 0.2s ease-out;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .gauge-cover {
@@ -147,13 +163,15 @@ $progress_percentage = ($goal_amount > 0) ? ($achieved_amount / $goal_amount) * 
     justify-content: center;
     padding-bottom: 25%;
     box-sizing: border-box;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.07);
 }
 
 .gauge-value {
-    font-family: sans-serif;
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
+    font-family: inherit;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #2d3436;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .gauge-ticks {
@@ -166,8 +184,15 @@ $progress_percentage = ($goal_amount > 0) ? ($achieved_amount / $goal_amount) * 
 
 .tick {
     position: absolute;
-    font-size: 12px;
-    color: #999;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.tick::after {
+    content: '%';
+    font-size: 0.7em;
+    margin-left: 1px;
 }
 
 .tick-0 { left: 7%; top: 50%; }
@@ -175,6 +200,29 @@ $progress_percentage = ($goal_amount > 0) ? ($achieved_amount / $goal_amount) * 
 .tick-50 { left: 50%; top: 10%; transform: translateX(-50%); }
 .tick-75 { right: 27%; top: 20%; }
 .tick-100 { right: 7%; top: 50%; }
+
+@media (max-width: 768px) {
+    .gauge-container {
+        padding: 1rem;
+    }
+    
+    .stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .stat-item {
+        padding: 1rem;
+    }
+    
+    .gauge {
+        max-width: 250px;
+    }
+    
+    .gauge-value {
+        font-size: 1.5rem;
+    }
+}
 </style>
 
 <script>
@@ -192,13 +240,16 @@ function setGaugeValue(gauge, value) {
 
 const gauge = document.querySelector(".gauge");
 let currentValue = 0;
-const targetValue = <?php echo round($progress_percentage, 2); ?>; // Dynamically fetched progress percentage
+const targetValue = <?php echo round($progress_percentage, 2); ?>;
 
 const animateGauge = () => {
     if (currentValue < targetValue) {
-        currentValue += 1;
+        const step = Math.max(1, (targetValue - currentValue) / 30);
+        currentValue = Math.min(targetValue, currentValue + step);
         setGaugeValue(gauge, currentValue);
-        requestAnimationFrame(animateGauge);
+        if (currentValue < targetValue) {
+            requestAnimationFrame(animateGauge);
+        }
     }
 };
 

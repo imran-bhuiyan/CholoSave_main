@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="text-2xl font-bold text-gray-800">৳<?= number_format($total_amount, 2) ?></div>
           </div>
           <div class="pt-4 text-sm text-red-500">
-            <a href="/test_project/group_member/group_member_dashboard.php" class="hover:underline">Cancel Payment &
+            <a href="/test_project/group_admin/group_admin_dashboard.php" class="hover:underline">Cancel Payment &
               return to Dashboard</a>
           </div>
         </div>

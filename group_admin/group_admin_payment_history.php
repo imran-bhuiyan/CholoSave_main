@@ -7,6 +7,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+$group_id = $_SESSION['group_id'];
 
 if (!isset($conn)) {
     include 'db.php'; // Ensure database connection
@@ -25,7 +26,7 @@ $paymentHistoryQuery = "
 ";
 
 if ($stmt = $conn->prepare($paymentHistoryQuery)) {
-    $stmt->bind_param('ii', $user_id, $_SESSION['group_id']);
+    $stmt->bind_param('ii', $user_id, $group_id);
     $stmt->execute();
     $paymentHistoryResult = $stmt->get_result();
 } else {
@@ -55,7 +56,7 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
 <body class="bg-gray-100 dark-mode-transition">
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <?php include 'sidebar.php'; ?>
+        <?php include 'group_admin_sidebar.php'; ?>
 
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto">
@@ -67,7 +68,7 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
                     </button>
                     <h1 class="text-5xl font-semibold custom-font">
                         <i class="fa-solid fa-receipt mr-3"></i>
-                        Payment History
+                        My Payments
                     </h1>
                 </div>
             </header>

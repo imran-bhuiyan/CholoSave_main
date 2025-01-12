@@ -25,13 +25,15 @@ if (!isset($conn)) {
 
 // Fetch members' details from the database
 $memberQuery = "
-    SELECT u.id, u.name, u.phone_number, g.join_date, g.is_admin, SUM(s.amount) AS group_contribution
+    SELECT u.id, u.name, u.phone_number, g.join_date, g.is_admin, SUM(s.amount) AS group_contribution, g.time_period_remaining as installment
     FROM users u
     JOIN group_membership g ON u.id = g.user_id
     LEFT JOIN savings s ON u.id = s.user_id AND s.group_id = g.group_id
     WHERE g.group_id = ? AND g.status = 'approved'
     GROUP BY u.id, u.name, u.phone_number, g.join_date, g.is_admin
 ";
+
+
 
 if ($stmt = $conn->prepare($memberQuery)) {
     $stmt->bind_param('i', $group_id);
@@ -55,6 +57,7 @@ if ($stmt = $conn->prepare($memberQuery)) {
     <link rel="stylesheet" type="text/css" href="group_member_dashboard_style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .custom-font {
             font-family: 'Poppins', sans-serif;
@@ -98,6 +101,7 @@ if ($stmt = $conn->prepare($memberQuery)) {
                                 <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Join Date</th>
                                 <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Role</th>
                                 <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Group Contribution (BDT)</th>
+                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Installment Remaining</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
@@ -112,6 +116,8 @@ if ($stmt = $conn->prepare($memberQuery)) {
                                     echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . htmlspecialchars($row['join_date'], ENT_QUOTES, 'UTF-8') . "</td>";
                                     echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . $role . "</td>";
                                     echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . (isset($row['group_contribution']) ? htmlspecialchars($row['group_contribution'], ENT_QUOTES, 'UTF-8') : '0') . " BDT</td>";
+                                    echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . (isset($row['installment']) ? htmlspecialchars($row['installment'], ENT_QUOTES, 'UTF-8') : '0') . " Time</td>";
+
                                     echo "</tr>";
                                 }
                             } else {

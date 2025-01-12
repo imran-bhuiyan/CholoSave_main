@@ -7,6 +7,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+$group_id = $_SESSION['group_id'];
 
 if (!isset($conn)) {
     include 'db.php'; // Ensure database connection
@@ -28,7 +29,7 @@ $loanHistoryQuery = "
 ";
 
 if ($stmt = $conn->prepare($loanHistoryQuery)) {
-    $stmt->bind_param('ii', $user_id, $_SESSION['group_id']);
+    $stmt->bind_param('ii', $user_id, $group_id);
     $stmt->execute();
     $loanHistoryResult = $stmt->get_result();
 } else {
@@ -48,7 +49,7 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="group_member_dashboard_style.css">
+    <link rel="stylesheet" type="text/css" href="group_admin_dashboard_style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .custom-font {
@@ -60,7 +61,7 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
 <body class="bg-gray-100 dark-mode-transition">
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <?php include 'sidebar.php'; ?>
+        <?php include 'group_admin_sidebar.php'; ?>
 
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto">
@@ -72,7 +73,7 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
                     </button>
                     <h1 class="text-5xl font-semibold custom-font">
                         <i class="fa-solid fa-file-invoice-dollar mr-3"></i>
-                        Loan History
+                        My Loans
                     </h1>
                 </div>
             </header>

@@ -7,35 +7,42 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+$group_id = $_SESSION['group_id'];
 
 if (!isset($conn)) {
     include 'db.php'; // Ensure database connection
 }
 
+// Check if a payment method filter is set, default to empty if not
+$paymentMethodFilter = isset($_GET['payment_method']) ? $_GET['payment_method'] : '';
 
-
-// Fetch loan history details for the logged-in user
-$loanHistoryQuery = "
+// Modify query to fetch payment history for all members of the group, with optional filters for payment method
+$paymentHistoryQuery = "
     SELECT 
-        lr.id AS loan_id,
-        lr.amount AS loan_amount,
-        lr.approve_date AS approve_date,
-        lr.return_time AS due_date,
-        lr.status AS loan_status
-    FROM loan_request lr
-    WHERE lr.user_id = ? AND lr.group_id = ? AND lr.status IN ('approved', 'pending', 'repaid') 
-    ORDER BY lr.request_time DESC
+        t.transaction_id, 
+        t.amount, 
+        t.payment_method, 
+        t.payment_time, 
+        t.user_id, 
+        u.name AS member_name
+    FROM transaction_info t
+    JOIN users u ON t.user_id = u.id
+    WHERE t.group_id = ? 
+    " . ($paymentMethodFilter ? "AND t.payment_method = ?" : "") . "
+    ORDER BY t.payment_time DESC
 ";
 
-if ($stmt = $conn->prepare($loanHistoryQuery)) {
-    $stmt->bind_param('ii', $user_id, $_SESSION['group_id']);
+if ($stmt = $conn->prepare($paymentHistoryQuery)) {
+    if ($paymentMethodFilter) {
+        $stmt->bind_param('is', $group_id, $paymentMethodFilter);
+    } else {
+        $stmt->bind_param('i', $group_id);
+    }
     $stmt->execute();
-    $loanHistoryResult = $stmt->get_result();
+    $paymentHistoryResult = $stmt->get_result();
 } else {
-    die("Error preparing loan history query.");
+    die("Error preparing payment history query.");
 }
-
-
 ?>
 
 <!DOCTYPE html>
@@ -44,7 +51,7 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan History</title>
+    <title>Payment History</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -60,7 +67,7 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
 <body class="bg-gray-100 dark-mode-transition">
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <?php include 'sidebar.php'; ?>
+        <?php include 'group_admin_sidebar.php'; ?>
 
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto">
@@ -71,57 +78,57 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
                     <h1 class="text-5xl font-semibold custom-font">
-                        <i class="fa-solid fa-file-invoice-dollar mr-3"></i>
-                        Loan History
+                        <i class="fa-solid fa-receipt mr-3"></i>
+                        Group Payment History
                     </h1>
                 </div>
             </header>
 
             <div class="p-6 w-full max-w-6xl mx-auto mt-[50px]">
                 <div class="bg-white rounded-lg shadow-lg p-8">
-                    <!-- Loan History Table -->
+                    <!-- Filter by Payment Method (bKash, Rocket, Nagad) -->
+                    <div class="mb-6">
+                        <form method="GET" action="">
+                            <label for="payment_method" class="block text-gray-700 font-medium mb-2">Filter by Payment Method:</label>
+                            <select id="payment_method" name="payment_method" class="p-2 border border-gray-300 rounded-md">
+                                <option value="">All</option>
+                                <option value="bKash" <?php echo isset($_GET['payment_method']) && $_GET['payment_method'] === 'bKash' ? 'selected' : ''; ?>>bKash</option>
+                                <option value="Rocket" <?php echo isset($_GET['payment_method']) && $_GET['payment_method'] === 'Rocket' ? 'selected' : ''; ?>>Rocket</option>
+                                <option value="Nagad" <?php echo isset($_GET['payment_method']) && $_GET['payment_method'] === 'Nagad' ? 'selected' : ''; ?>>Nagad</option>
+                            </select>
+                            <button type="submit" class="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Apply</button>
+                        </form>
+                    </div>
+
+                    <!-- Payment History Table -->
                     <div class="overflow-x-auto">
                         <table class="min-w-full table-auto border-collapse bg-gray-50 rounded-lg">
                             <thead>
                                 <tr class="bg-blue-100 border-b">
                                     <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Serial</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Loan Amount (BDT)</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Approve Date</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Due Date</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-center text-gray-700 font-medium uppercase tracking-wider">Actions</th>
+                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Member Name</th>
+                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Transaction ID</th>
+                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Amount (BDT)</th>
+                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Payment Method</th>
+                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Payment Time</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
                                 <?php
-                                if ($loanHistoryResult->num_rows > 0) {
+                                if ($paymentHistoryResult->num_rows > 0) {
                                     $serial = 1;
-                                    while ($row = $loanHistoryResult->fetch_assoc()) {
-                                        $actionButton = '';
-                                        if ($row['loan_status'] == 'approved') {
-                                            $actionButton = "<form action='loan_session.php' method='POST'>
-                                            <input type='hidden' name='loan_id' value='" . $row['loan_id'] . "'>
-                                            <button type='submit' class='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600'>Pay</button>
-                                          </form>";
-                                        } elseif ($row['loan_status'] == 'repaid') {
-                                            $actionButton = 'N/A';
-                                        } else {
-                                            $actionButton = 'N/A';
-                                        }
-
-                                        $loanStatus = ($row['loan_status'] == 'repaid') ? 'Paid' : htmlspecialchars($row['loan_status'], ENT_QUOTES, 'UTF-8');
-
+                                    while ($row = $paymentHistoryResult->fetch_assoc()) {
                                         echo "<tr class='hover:bg-gray-100 transition'>";
                                         echo "<td class='px-6 py-4 text-gray-800'>" . $serial++ . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['loan_amount'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['approve_date'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['due_date'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . $loanStatus . "</td>";
-                                        echo "<td class='px-6 py-4 text-center'>" . $actionButton . "</td>";
+                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['member_name'], ENT_QUOTES, 'UTF-8') . "</td>";
+                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['transaction_id'], ENT_QUOTES, 'UTF-8') . "</td>";
+                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['amount'], ENT_QUOTES, 'UTF-8') . "</td>";
+                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['payment_method'], ENT_QUOTES, 'UTF-8') . "</td>";
+                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['payment_time'], ENT_QUOTES, 'UTF-8') . "</td>";
                                         echo "</tr>";
                                     }
                                 } else {
-                                    echo "<tr><td colspan='6' class='px-6 py-4 text-center text-gray-600'>No loan history found.</td></tr>";
+                                    echo "<tr><td colspan='6' class='px-6 py-4 text-center text-gray-600'>No payment history found.</td></tr>";
                                 }
                                 ?>
                             </tbody>

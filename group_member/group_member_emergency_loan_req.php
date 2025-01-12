@@ -6,17 +6,14 @@ $user_id = $_SESSION['user_id'];
 if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
     $group_id = $_SESSION['group_id'];
     $user_id = $_SESSION['user_id'];
-    echo 'This is group id: ' . htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8');
-    echo 'This is user id: ' . htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8');
 } else {
-    echo 'Group ID is not set in the session.';
+    echo 'Group ID or User ID is not set in the session.';
 }
+
 if (!isset($_SESSION['group_id']) || !isset($_SESSION['user_id'])) {
     header("Location: /test_project/error_page.php"); // Redirect if session variables are missing
     exit;
 }
-
-
 
 if (!isset($conn)) {
     include 'db.php'; // Ensure database connection
@@ -46,36 +43,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $errors['returnDate'] = 'Return date must be today or later.';
     }
 
-    // If no errors, proceed with database insertion
+    // If no errors, proceed with loan request submission
     if (empty($errors)) {
-        $loanQuery = "INSERT INTO loan_request (user_id, group_id, reason, amount, return_time) VALUES (?, ?, ?, ?, ?)";
-        if ($stmt = $conn->prepare($loanQuery)) {
-            $stmt->bind_param('iisis', $user_id, $group_id, $reason, $amount, $returnDate);
-            if ($stmt->execute()) {
-                // Create a poll question
-                $userQuery = "SELECT name FROM users WHERE id = ?";
-                if ($userStmt = $conn->prepare($userQuery)) {
-                    $userStmt->bind_param('i', $user_id);
-                    $userStmt->execute();
-                    $userStmt->bind_result($userName);
-                    $userStmt->fetch();
-                    $userStmt->close();
+        // Check if the user already has an outstanding loan in the same group
+        $loanCheckQuery = "SELECT * FROM loan_request WHERE user_id = ? AND group_id = ? AND status IN ('pending', 'approved')"; // 'pending or approved ' means an outstanding loan
 
-                    $pollQuestion = "$userName has requested a loan of BDT $amount. Do you approve?";
-                    $pollQuery = "INSERT INTO polls (group_id, poll_question) VALUES (?, ?)";
-                    if ($pollStmt = $conn->prepare($pollQuery)) {
-                        $pollStmt->bind_param('is', $group_id, $pollQuestion);
-                        $pollStmt->execute();
-                        $pollStmt->close();
-                    }
-                }
-                // Success message
+        if ($loanCheckStmt = $conn->prepare($loanCheckQuery)) {
+            $loanCheckStmt->bind_param('ii', $user_id, $group_id);
+            $loanCheckStmt->execute();
+            $loanCheckStmt->store_result();
+            
+            if ($loanCheckStmt->num_rows > 0) {
+                // Outstanding loan found, show SweetAlert
                 echo "<script>
                         document.addEventListener('DOMContentLoaded', function() {
                             Swal.fire({
-                                title: 'Success!',
-                                text: 'Loan request submitted successfully.',
-                                icon: 'success',
+                                title: 'Error!',
+                                text: 'You have an outstanding loan request in this group. Please settle it before making a new one.',
+                                icon: 'error',
                                 confirmButtonText: 'OK'
                             }).then(() => {
                                 window.location.href = '/test_project/group_member/group_member_emergency_loan_req.php';
@@ -83,15 +68,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         });
                       </script>";
             } else {
-                $errors['submission'] = 'Error submitting loan request.';
+                // No outstanding loan, proceed with inserting loan request
+                $loanQuery = "INSERT INTO loan_request (user_id, group_id, reason, amount, return_time) VALUES (?, ?, ?, ?, ?)";
+                if ($stmt = $conn->prepare($loanQuery)) {
+                    $stmt->bind_param('iisis', $user_id, $group_id, $reason, $amount, $returnDate);
+                    if ($stmt->execute()) {
+                        // After successful loan insertion, show success message
+                        echo "<script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    Swal.fire({
+                                        title: 'Success!',
+                                        text: 'Loan request submitted successfully.',
+                                        icon: 'success',
+                                        confirmButtonText: 'OK'
+                                    }).then(() => {
+                                        window.location.href = '/test_project/group_member/group_member_emergency_loan_req.php';
+                                    });
+                                });
+                              </script>";
+                    } else {
+                        $errors['submission'] = 'Error submitting loan request.';
+                    }
+                    $stmt->close();
+                } else {
+                    $errors['query'] = 'Error preparing loan request query.';
+                }
             }
-            $stmt->close();
-        } else {
-            $errors['query'] = 'Error preparing loan request query.';
+            $loanCheckStmt->close();
         }
     }
 }
 ?>
+
+<!-- HTML Form remains the same as in your original code -->
+
 
 <!DOCTYPE html>
 <html lang="en">
