@@ -9,33 +9,18 @@ if (!isset($_SESSION['group_id'])) {
 $group_id = $_SESSION['group_id'];
 $user_id = $_SESSION['user_id'];
 
+if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
+    $group_id = $_SESSION['group_id'];
+    $user_id = $_SESSION['user_id'];
+    echo 'This is group id: ' . htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8');
+    echo 'This is user id: ' . htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8');
+} else {
+    echo 'Group ID is not set in the session.';
+}
+
 if (!isset($conn)) {
     include 'db.php'; // Ensure database connection
 }
-
-// Check if the user is an admin
-$is_admin_query = "SELECT is_admin FROM group_membership WHERE group_id = ? AND user_id = ?";
-function fetchSingleValue($conn, $query, $params, $types = "i")
-{
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-    return array_values($row)[0] ?? null; // Return the first value, or null if no result
-}
-
-$is_admin = fetchSingleValue($conn, $is_admin_query, [$group_id, $user_id], "ii");
-
-// Redirect non-admins to the error page
-if (!$is_admin) {
-    header("Location: /test_project/error_page.php");
-    exit;
-}
-
-// If the user is an admin, continue with the rest of the script
-echo 'This is group id: ' . htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8');
-echo 'This is user id: ' . htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8');
 
 // Queries
 $total_group_savings_query = "SELECT IFNULL(SUM(amount), 0) AS total_group_savings FROM savings WHERE group_id = ?";
@@ -44,22 +29,35 @@ $total_members_query = "SELECT COUNT(*) AS total_members FROM group_membership W
 $new_members_query = "SELECT COUNT(*) AS new_members FROM group_membership WHERE group_id = ? AND status = 'approved' AND MONTH(join_date) = MONTH(CURRENT_DATE)";
 $emergency_query = "SELECT emergency_fund FROM my_group WHERE group_id = ?";
 
-$total_group_savings = fetchSingleValue($conn, $total_group_savings_query, [$group_id]);
+// Fetch Data
+function fetchSingleValue($conn, $query, $param)
+{
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $param);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    return array_values($row)[0]; // Return the first value
+}
+
+$total_group_savings = fetchSingleValue($conn, $total_group_savings_query, $group_id);
 echo "Total Group Savings: $total_group_savings"; // Debug output
 
-$this_month_savings = fetchSingleValue($conn, $month_savings_query, [$group_id]);
+$this_month_savings = fetchSingleValue($conn, $month_savings_query, $group_id);
 echo "This Month's Savings: $this_month_savings"; // Debug output
 
-$total_members = fetchSingleValue($conn, $total_members_query, [$group_id]);
+$total_members = fetchSingleValue($conn, $total_members_query, $group_id);
 echo "Total Members: $total_members"; // Debug output
 
-$new_members = fetchSingleValue($conn, $new_members_query, [$group_id]);
+$new_members = fetchSingleValue($conn, $new_members_query, $group_id);
 echo "New Members This Month: $new_members"; // Debug output
 
-$emergency_fund = fetchSingleValue($conn, $emergency_query, [$group_id]);
+$emergency_fund = fetchSingleValue($conn, $emergency_query, $group_id);
 echo "Emergency Fund: $emergency_fund"; // Debug output
-?>
 
+
+
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -80,7 +78,7 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
 </head>
 
 <body class="bg-gray-100 dark-mode-transition">
-    <div class="flex h-screen">
+    <div class="flex h-full">
         <!-- Sidebar -->
         <?php include 'group_admin_sidebar.php'; ?>
 
@@ -98,14 +96,14 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
                         Dashboard
                     </h1>
                 </div>
-                <!-- <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-4">
                     <button class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
                         <i class="fas fa-bell"></i>
                     </button>
                     <button class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
                         <i class="fas fa-user-circle"></i>
                     </button>
-                </div> -->
+                </div>
             </header>
 
             <!-- Main Content Area -->
@@ -154,10 +152,15 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
                     </div>
                 </div>
 
-<!-- Graph or chart showing code -->
-          
-                <?php include 'group_admin_dashboard_graph.php'; ?>
-                
+                <!-- Graph or chart showing code -->
+                <div class="flex justify-between gap-4">
+                    <div class="flex-1">
+                        <?php include 'group_admin_dashboard_graph.php'; ?>
+                    </div>
+                    <div class="flex-1 ">
+                        <div class="h-[500px] w-full bg-blue-500 "> <?php include 'progress_bar.php'; ?> </div>
+                    </div>
+                </div>
 
                 <!-- Polls Section -->
                 <?php include 'polls.php'; ?>

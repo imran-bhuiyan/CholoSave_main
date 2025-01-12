@@ -78,7 +78,7 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
 </head>
 
 <body class="bg-gray-100 dark-mode-transition">
-    <div class="flex h-screen">
+    <div class="flex h-full">
         <!-- Sidebar -->
         <?php include 'sidebar.php'; ?>
 
@@ -96,14 +96,14 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
                         Dashboard
                     </h1>
                 </div>
-                <!-- <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-4">
                     <button class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
                         <i class="fas fa-bell"></i>
                     </button>
                     <button class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
                         <i class="fas fa-user-circle"></i>
                     </button>
-                </div> -->
+                </div>
             </header>
 
             <!-- Main Content Area -->
@@ -152,10 +152,15 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
                     </div>
                 </div>
 
-<!-- Graph or chart showing code -->
-          
-                <?php include 'dashboard_graph.php'; ?>
-                
+                <!-- Graph or chart showing code -->
+                <div class="flex justify-between gap-4">
+                    <div class="flex-1">
+                        <?php include 'dashboard_graph.php'; ?>
+                    </div>
+                    <div class="flex-1 ">
+                        <div class="h-[500px] w-full bg-blue-500 "> <?php include 'progress_bar.php'; ?> </div>
+                    </div>
+                </div>
 
                 <!-- Polls Section -->
                 <?php include 'polls.php'; ?>

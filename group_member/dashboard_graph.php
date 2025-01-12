@@ -4,7 +4,7 @@ if (!isset($conn) || !isset($group_id)) {
     die('Required variables not set');
 }
 
-// Get last 6 months of savings data (increased from 4 to show more trends)
+// Get last 6 months of savings data 
 $query = "
     SELECT 
         DATE_FORMAT(created_at, '%b %Y') as month_label,
@@ -32,7 +32,7 @@ while ($row = $result->fetch_assoc()) {
     $labels[] = $row['month_label'];
     $values[] = $row['total_amount'];
     $backgroundColor[] = 'rgba(59, 130, 246, 0.2)'; // Blue with opacity
-    $borderColor[] = 'rgb(59, 130, 246)'; // Solid blue
+    $borderColor[] = 'rgba(59, 131, 246, 0.32)'; // Solid blue
 }
 
 // Convert data arrays to JSON for JavaScript
@@ -43,7 +43,7 @@ $chartData = [
 ?>
 
 <!-- Graph Container -->
-<div class="bg-white rounded-lg shadow-lg p-6">
+<div class="bg-white rounded-lg shadow-lg p-6 max-w-3xl">
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold text-gray-800">Monthly Savings</h2>
         <div class="flex gap-2">

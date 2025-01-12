@@ -93,11 +93,11 @@ if ($stmt = $conn->prepare($memberQuery)) {
                     <table class="min-w-full table-auto border-collapse bg-gray-50 rounded-lg">
                         <thead>
                             <tr class="bg-blue-100 border-b">
-                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Name</th>
-                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Phone Number</th>
-                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Join Date</th>
-                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Role</th>
-                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Group Contribution (BDT)</th>
+                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Name</th>
+                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Phone Number</th>
+                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Join Date</th>
+                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Role</th>
+                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Group Contribution (BDT)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
@@ -106,12 +106,12 @@ if ($stmt = $conn->prepare($memberQuery)) {
                             if ($result->num_rows > 0) {
                                 while ($row = $result->fetch_assoc()) {
                                     $role = $row['is_admin'] == 1 ? 'Admin' : 'Member';
-                                    echo "<tr class='hover:bg-gray-100 transition'>";
-                                    echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                    echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['phone_number'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                    echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['join_date'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                    echo "<td class='px-6 py-4 text-gray-800'>" . $role . "</td>";
-                                    echo "<td class='px-6 py-4 text-gray-800'>" . (isset($row['group_contribution']) ? htmlspecialchars($row['group_contribution'], ENT_QUOTES, 'UTF-8') : '0') . " BDT</td>";
+                                    echo "<tr class='hover:bg-gray-100 transition border border-purple-400'>";
+                                    echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8') . "</td>";
+                                    echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . htmlspecialchars($row['phone_number'], ENT_QUOTES, 'UTF-8') . "</td>";
+                                    echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . htmlspecialchars($row['join_date'], ENT_QUOTES, 'UTF-8') . "</td>";
+                                    echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . $role . "</td>";
+                                    echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . (isset($row['group_contribution']) ? htmlspecialchars($row['group_contribution'], ENT_QUOTES, 'UTF-8') : '0') . " BDT</td>";
                                     echo "</tr>";
                                 }
                             } else {
