@@ -26,7 +26,7 @@ if ($stmt = $conn->prepare($checkAdminQuery)) {
     $stmt->bind_result($group_admin_id);
     $stmt->fetch();
     $stmt->close();
-    
+
     // If the user is the admin of the group, proceed; otherwise, redirect to an error page
     if ($group_admin_id === $user_id) {
         $is_admin = true;
@@ -41,22 +41,26 @@ if (!$is_admin) {
 
 
 $leaveRequestsQuery = "
-    SELECT 
-        gm.user_id, 
-        gm.group_id, 
-        gm.leave_request, 
-        gm.join_date, 
-        gm.time_period_remaining, 
-        SUM(s.amount) AS total_contribution
-    FROM 
-        group_membership gm
-    LEFT JOIN 
-        savings s ON gm.user_id = s.user_id
-    WHERE 
-        gm.leave_request = 'pending' 
-        AND gm.group_id = ? 
-    GROUP BY 
-        gm.user_id, gm.group_id, gm.leave_request, gm.join_date, gm.time_period_remaining
+  SELECT 
+    gm.user_id, 
+    gm.group_id, 
+    gm.leave_request, 
+    gm.join_date, 
+    gm.time_period_remaining, 
+    u.name AS username,
+    SUM(s.amount) AS total_contribution
+FROM 
+    group_membership gm
+LEFT JOIN 
+    savings s ON gm.user_id = s.user_id
+LEFT JOIN 
+    users u ON gm.user_id = u.id
+WHERE 
+    gm.leave_request = 'pending' 
+    AND gm.group_id = ? 
+GROUP BY 
+    gm.user_id, gm.group_id, gm.leave_request, gm.join_date, gm.time_period_remaining, u.name;
+
 ";
 
 $leaveRequests = [];
@@ -73,9 +77,10 @@ if ($stmt = $conn->prepare($leaveRequestsQuery)) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     $user_id_to_update = $_POST['user_id'];
     $action = $_POST['action'];
-    
+
     if ($action == 'approve') {
-        $updateQuery = "UPDATE group_membership SET leave_request = 'approved' WHERE user_id = ? AND group_id = ?";
+        $updateQuery = "UPDATE group_membership SET leave_request = 'approved', status = 'declined', join_date = NULL, join_request_date = NULL, time_period_remaining = NULL 
+                        WHERE user_id = ? AND group_id = ?;";
     } elseif ($action == 'reject') {
         $updateQuery = "UPDATE group_membership SET leave_request = 'declined' WHERE user_id = ? AND group_id = ?";
     }
@@ -94,6 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -105,6 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         body {
             font-family: 'Inter', sans-serif;
         }
+
         .glass-effect {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -112,6 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         }
     </style>
 </head>
+
 <body class="bg-gradient-to-br from-white-50 to-blue-100 min-h-screen">
     <div class="flex h-screen">
         <!-- Sidebar -->
@@ -142,7 +150,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-gradient-to-r from-blue-50 to-blue-50">
                             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                                 <div class="text-sm font-medium text-gray-500">Pending Requests</div>
-                                <div class="mt-2 text-3xl font-semibold text-blue-600"><?php echo count($leaveRequests); ?></div>
+                                <div class="mt-2 text-3xl font-semibold text-blue-600">
+                                    <?php echo count($leaveRequests); ?></div>
                             </div>
                             <!-- Add more stats cards as needed -->
                         </div>
@@ -153,53 +162,74 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead>
                                         <tr class="bg-gray-50">
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serial</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Join Date</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time Period Remaining</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Contribution</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Serial</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                name</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Join Date</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Time Period Remaining</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Total Contribution</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
-                                        <?php 
+                                        <?php
                                         $serial = 1;
-                                        foreach ($leaveRequests as $request): 
-                                        ?>
-                                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo $serial++; ?></td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                <?php echo date('d M Y', strtotime($request['join_date'])); ?>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                <?php echo $request['time_period_remaining']; ?> months
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="text-sm font-medium text-gray-900">
-                                                    ৳<?php echo number_format($request['total_contribution'], 2); ?>
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <form method="POST" class="flex space-x-2">
-                                                    <input type="hidden" name="user_id" value="<?php echo $request['user_id']; ?>">
-                                                    <button type="submit" name="action" value="approve"
-                                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
-                                                        <i class="fas fa-check mr-2"></i> Approve
-                                                    </button>
-                                                    <button type="submit" name="action" value="reject"
-                                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
-                                                        <i class="fas fa-times mr-2"></i> Reject
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
+                                        foreach ($leaveRequests as $request):
+                                            ?>
+                                            <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <?php echo $serial++; ?></td>
+
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                    <?php echo htmlspecialchars($request['username']); ?>
+                                                </td>
+
+
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                    <?php echo date('d M Y', strtotime($request['join_date'])); ?>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <?php echo $request['time_period_remaining']; ?> months
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="text-sm font-medium text-gray-900">
+                                                        ৳<?php echo number_format($request['total_contribution'], 2); ?>
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <form method="POST" class="flex space-x-2">
+                                                        <input type="hidden" name="user_id"
+                                                            value="<?php echo $request['user_id']; ?>">
+                                                        <button type="submit" name="action" value="approve"
+                                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                                                            <i class="fas fa-check mr-2"></i> Approve
+                                                        </button>
+                                                        <button type="submit" name="action" value="reject"
+                                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
+                                                            <i class="fas fa-times mr-2"></i> Reject
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($leaveRequests)): ?>
-                                        <tr>
-                                            <td colspan="5" class="px-6 py-10 text-center text-gray-500">
-                                                <i class="fas fa-inbox text-4xl mb-4"></i>
-                                                <p>No pending leave requests</p>
-                                            </td>
-                                        </tr>
+                                            <tr>
+                                                <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                                                    <i class="fas fa-inbox text-4xl mb-4"></i>
+                                                    <p>No pending leave requests</p>
+                                                </td>
+                                            </tr>
                                         <?php endif; ?>
                                     </tbody>
                                 </table>
@@ -213,10 +243,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
     <script>
         // Menu toggle for mobile
-        document.getElementById('menu-button').addEventListener('click', function() {
+        document.getElementById('menu-button').addEventListener('click', function () {
             const sidebar = document.querySelector('.sidebar');
             sidebar.classList.toggle('-translate-x-full');
         });
     </script>
 </body>
+
 </html>
