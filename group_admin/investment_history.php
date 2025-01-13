@@ -1,13 +1,11 @@
 <?php
+// Start session
 session_start();
 
 $group_id = $_SESSION['group_id'];
 $user_id = $_SESSION['user_id'];
 
-if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
-    $group_id = $_SESSION['group_id'];
-    $user_id = $_SESSION['user_id'];
-} else {
+if (!isset($_SESSION['group_id']) || !isset($_SESSION['user_id'])) {
     header("Location: /test_project/error_page.php");
     exit;
 }
@@ -15,7 +13,6 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
 if (!isset($conn)) {
     include 'db.php';
 }
-
 
 // Check if the user is an admin for the group
 $is_admin = false;
@@ -26,20 +23,18 @@ if ($stmt = $conn->prepare($checkAdminQuery)) {
     $stmt->bind_result($group_admin_id);
     $stmt->fetch();
     $stmt->close();
-    
-    // If the user is the admin of the group, proceed; otherwise, redirect to an error page
+
     if ($group_admin_id === $user_id) {
         $is_admin = true;
     }
 }
 
 if (!$is_admin) {
-    // Redirect to error page if the user is not an admin
     header("Location: /test_project/error_page.php");
     exit;
 }
 
-
+// Fetch investment data
 $investmentHistoryQuery = "
     SELECT 
         i.amount AS 'Investment Amount', 
@@ -69,6 +64,10 @@ if ($stmt = $conn->prepare($investmentHistoryQuery)) {
     }
     $stmt->close();
 }
+
+// Store investments in session for PDF export
+$_SESSION['investment_data'] = $investments;
+
 ?>
 
 <!DOCTYPE html>
@@ -126,9 +125,11 @@ if ($stmt = $conn->prepare($investmentHistoryQuery)) {
                             </h1>
                         </div>
                         <div class="flex items-center space-x-4">
-                            <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm transition-colors duration-200">
-                                <i class="fas fa-download mr-2"></i>Export
-                            </button>
+                        <a href="investment_details_export.php" 
+   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm transition-colors duration-200 inline-flex items-center">
+    <i class="fas fa-download mr-2"></i> Export
+</a>
+
                         </div>
                     </div>
                 </div>

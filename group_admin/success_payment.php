@@ -13,8 +13,9 @@ $total_amount = $_SESSION['total_amount'];
 $payment_method = $_SESSION['payment_method'];
 $transaction_date = $_SESSION['transaction_date'];
 
-// Optionally, clear session data after displaying it
-unset($_SESSION['transaction_id'], $_SESSION['total_amount'], $_SESSION['payment_method'], $_SESSION['transaction_date']);
+// echo'This is Transaction_id'. $transaction_id;
+
+
 ?>
 
 <!DOCTYPE html>
@@ -76,11 +77,12 @@ unset($_SESSION['transaction_id'], $_SESSION['total_amount'], $_SESSION['payment
       </div>
     </div>
 
-    <!-- Receipt Button -->
-    <button class="w-full mb-4 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg text-lg transition duration-300 flex items-center justify-center">
-      <i class="fas fa-download mr-2"></i>
-      Download Receipt
-    </button>
+   <!-- Receipt Button -->
+<a href="generate_receipt.php" 
+   class="w-full mb-4 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg text-lg transition duration-300 flex items-center justify-center">
+  <i class="fas fa-download mr-2"></i>
+  Download Receipt
+</a>
 
     <!-- Home Button -->
     <a href="/test_project/group_admin/group_admin_dashboard.php" 

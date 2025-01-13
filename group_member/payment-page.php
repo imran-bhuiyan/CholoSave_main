@@ -92,6 +92,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $update_stmt->execute();
 
       $conn->commit();
+      
+      $_SESSION['transaction_id'] = $transaction_id;
+      $_SESSION['total_amount'] = $total_amount;
+      $_SESSION['payment_method'] = $selected_method;
+      $_SESSION['transaction_date'] = date('Y-m-d H:i:s'); // Current date and time
       header("Location: success_payment.php");
       exit;
     } catch (Exception $e) {

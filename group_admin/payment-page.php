@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             confirmButtonText: 'OK'
           }).then((result) => {
             if (result.isConfirmed) {
-              window.location.href = '/test_project/group_member/group_member_dashboard.php'; // Redirect to dashboard
+              window.location.href = '/test_project/group_admin/group_admin_dashboard.php'; // Redirect to dashboard
             }
           });
         </script>";
