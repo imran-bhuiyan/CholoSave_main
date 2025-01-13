@@ -13,6 +13,30 @@ if (!isset($conn)) {
     include 'db.php'; // Ensure database connection
 }
 
+
+// Check if the user is an admin for the group
+$is_admin = false;
+$checkAdminQuery = "SELECT group_admin_id FROM my_group WHERE group_id = ?";
+if ($stmt = $conn->prepare($checkAdminQuery)) {
+    $stmt->bind_param('i', $group_id);
+    $stmt->execute();
+    $stmt->bind_result($group_admin_id);
+    $stmt->fetch();
+    $stmt->close();
+    
+    // If the user is the admin of the group, proceed; otherwise, redirect to an error page
+    if ($group_admin_id === $user_id) {
+        $is_admin = true;
+    }
+}
+
+if (!$is_admin) {
+    // Redirect to error page if the user is not an admin
+    header("Location: /test_project/error_page.php");
+    exit;
+}
+
+
 // Handle Approve or Reject actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['loan_id'], $_POST['action'])) {
     $loan_id = $_POST['loan_id'];
@@ -103,7 +127,7 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
                     <h1 class="text-5xl font-semibold custom-font">
-                        <i class="fa-solid fa-file-invoice-dollar mr-3"></i>
+                        <i class="fa-solid fa-file-invoice-dollar text-blue-600 mr-3"></i>
                         Loan Management
                     </h1>
                 </div>

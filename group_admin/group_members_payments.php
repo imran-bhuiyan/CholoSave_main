@@ -13,6 +13,29 @@ if (!isset($conn)) {
     include 'db.php'; // Ensure database connection
 }
 
+
+// Check if the user is an admin for the group
+$is_admin = false;
+$checkAdminQuery = "SELECT group_admin_id FROM my_group WHERE group_id = ?";
+if ($stmt = $conn->prepare($checkAdminQuery)) {
+    $stmt->bind_param('i', $group_id);
+    $stmt->execute();
+    $stmt->bind_result($group_admin_id);
+    $stmt->fetch();
+    $stmt->close();
+    
+    // If the user is the admin of the group, proceed; otherwise, redirect to an error page
+    if ($group_admin_id === $user_id) {
+        $is_admin = true;
+    }
+}
+
+if (!$is_admin) {
+    // Redirect to error page if the user is not an admin
+    header("Location: /test_project/error_page.php");
+    exit;
+}
+
 // Check if a payment method filter is set, default to empty if not
 $paymentMethodFilter = isset($_GET['payment_method']) ? $_GET['payment_method'] : '';
 
@@ -78,7 +101,7 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
                     <h1 class="text-5xl font-semibold custom-font">
-                        <i class="fa-solid fa-receipt mr-3"></i>
+                        <i class="fa-solid fa-receipt text-blue-600 mr-3"></i>
                         Group Payment History
                     </h1>
                 </div>
