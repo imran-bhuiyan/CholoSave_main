@@ -1,3 +1,22 @@
+<?php
+session_start();
+
+// Check if the transaction details are set in the session
+if (!isset($_SESSION['transaction_id'], $_SESSION['total_amount'], $_SESSION['payment_method'], $_SESSION['transaction_date'])) {
+    header("Location: error_page.php"); // Redirect to error page if details are not set
+    exit;
+}
+
+// Get session data
+$transaction_id = $_SESSION['transaction_id'];
+$total_amount = $_SESSION['total_amount'];
+$payment_method = $_SESSION['payment_method'];
+$transaction_date = $_SESSION['transaction_date'];
+
+// Optionally, clear session data after displaying it
+unset($_SESSION['transaction_id'], $_SESSION['total_amount'], $_SESSION['payment_method'], $_SESSION['transaction_date']);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,18 +60,18 @@
     <div class="bg-gray-50 rounded-lg p-4 mb-6">
       <div class="flex justify-between items-center mb-2">
         <span class="text-gray-600">Transaction ID:</span>
-        <span class="text-gray-800 font-medium">#2024-0113-789</span>
+        <span class="text-gray-800 font-medium"><?= htmlspecialchars($transaction_id) ?></span>
       </div>
       <div class="flex justify-between items-center mb-2">
         <span class="text-gray-600">Date:</span>
-        <span class="text-gray-800 font-medium">Jan 13, 2025</span>
+        <span class="text-gray-800 font-medium"><?= htmlspecialchars($transaction_date) ?></span>
       </div>
       <div class="border-t border-gray-200 my-2"></div>
       <div class="flex justify-between items-center">
         <span class="text-gray-600">Payment Method:</span>
         <span class="text-gray-800 font-medium">
           <i class="fas fa-credit-card mr-2"></i>
-          ****-4589
+          <?= htmlspecialchars($payment_method) ?>
         </span>
       </div>
     </div>

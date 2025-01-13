@@ -180,24 +180,16 @@
                 </div>
 
                 <!-- Settings Section -->
-                <div class="pt-4">
-                    <button class="sidebar-item flex items-center w-full p-3 text-gray-600 hover:bg-gray-100 rounded-lg"
-                        onclick="toggleSubMenu('settings-menu')">
-                        <i class="fas fa-cogs w-6"></i>
-                        <span>Settings</span>
-                        <i class="fas fa-chevron-down ml-auto"></i>
-                    </button>
-                    <div id="settings-menu" class="hidden ml-4 space-y-2">
-                        <a href="/test_project/group_admin/change_goal.php"
-                            class="block p-2 text-gray-600 hover:bg-gray-100 rounded-lg">Change Goal Amount</a>
-                        <a href="/test_project/group_admin/change_installment.php"
-                            class="block p-2 text-gray-600 hover:bg-gray-100 rounded-lg">Change Installment Amount</a>
-                        <a href="/test_project/group_admin/change_time.php"
-                            class="block p-2 text-gray-600 hover:bg-gray-100 rounded-lg">Change Time Period</a>
-                        <a href="/test_project/group_admin/close_savings.php"
-                            class="block p-2 text-gray-600 hover:bg-gray-100 rounded-lg">Close Savings</a>
+              
+                    <div class="pt-1">
+                        <a href="/test_project/group_admin/settings.php"
+                            class="sidebar-item flex items-center w-full p-3 text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <i class="fas fa-cogs w-6"></i>
+                            <span>Settings</span>
+                        </a>
                     </div>
-                </div>
+
+              
 
                 <!-- Exit -->
                 <a href="/test_project/group_exit.php"

@@ -23,7 +23,7 @@ if ($stmt = $conn->prepare($checkAdminQuery)) {
     $stmt->bind_result($group_admin_id);
     $stmt->fetch();
     $stmt->close();
-    
+
     // If the user is the admin of the group, proceed; otherwise, redirect to an error page
     if ($group_admin_id === $user_id) {
         $is_admin = true;
@@ -123,7 +123,8 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
             <!-- Page Header -->
             <header class="flex items-center justify-between p-4 bg-white shadow dark-mode-transition">
                 <div class="flex items-center justify-center w-full">
-                    <button id="menu-button" class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 absolute left-2">
+                    <button id="menu-button"
+                        class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 absolute left-2">
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
                     <h1 class="text-5xl font-semibold custom-font">
@@ -145,7 +146,8 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
                                 <option value="approved" <?php echo isset($_GET['filter']) && $_GET['filter'] === 'approved' ? 'selected' : ''; ?>>Approved</option>
                                 <option value="repaid" <?php echo isset($_GET['filter']) && $_GET['filter'] === 'repaid' ? 'selected' : ''; ?>>Repaid</option>
                             </select>
-                            <button type="submit" class="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Apply</button>
+                            <button type="submit"
+                                class="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Apply</button>
                         </form>
                     </div>
 
@@ -154,15 +156,25 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
                         <table class="w-full table-auto border-collapse bg-gray-50 rounded-lg">
                             <thead>
                                 <tr class="bg-blue-100 border-b">
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Serial</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Name</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Loan Amount (BDT)</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Group Contribution (BDT)</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Request Date</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Due Date</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Approve Date</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-center text-gray-700 font-medium uppercase tracking-wider">Actions</th>
+                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
+                                        Serial</th>
+                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
+                                        Name</th>
+                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
+                                        Loan Amount (BDT)</th>
+                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
+                                        Group Contribution (BDT)</th>
+                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
+                                        Request Date</th>
+                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
+                                        Due Date</th>
+                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
+                                        Approve Date</th>
+                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
+                                        Status</th>
+                                    <th
+                                        class="px-6 py-3 text-center text-gray-700 font-medium uppercase tracking-wider">
+                                        Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
@@ -190,11 +202,11 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
                                             echo "<td class='px-6 py-4 text-center action-buttons'>
                                                 <form action='' method='POST'>
                                                     <input type='hidden' name='loan_id' value='" . $row['loan_id'] . "'>
-                                                    <button type='submit' name='action' value='approved' class='bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600'>Approve</button>
+                                                    <button type='submit' name='action' value='approved' class='inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200'>Approve</button>
                                                 </form>
                                                 <form action='' method='POST'>
                                                     <input type='hidden' name='loan_id' value='" . $row['loan_id'] . "'>
-                                                    <button type='submit' name='action' value='declined' class='bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600'>Reject</button>
+                                                    <button type='submit' name='action' value='declined' class='inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200'>Reject</button>
                                                 </form>
                                             </td>";
                                         } else {
