@@ -48,6 +48,31 @@ $payment_methods = $payment_stmt->get_result()->fetch_assoc();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $selected_method = $_POST['payment_method'] ?? '';
   if (!empty($selected_method)) {
+    // Check if the user has remaining payments
+    $check_stmt = $conn->prepare("SELECT time_period_remaining FROM group_membership WHERE user_id = ? AND group_id = ?");
+    $check_stmt->bind_param('ii', $user_id, $group_id);
+    $check_stmt->execute();
+    $time_period_remaining = $check_stmt->get_result()->fetch_assoc()['time_period_remaining'];
+
+    if ($time_period_remaining <= 0) {
+      // Display a SweetAlert message and redirect to the dashboard
+      echo "
+        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+        <script>
+          Swal.fire({
+            title: 'Savings Completed',
+            text: 'You have completed your savings for this group. No further payments are needed.',
+            icon: 'success',
+            confirmButtonText: 'OK'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.location.href = '/test_project/group_member/group_member_dashboard.php'; // Redirect to dashboard
+            }
+          });
+        </script>";
+      exit;
+    }
+
     $conn->begin_transaction();
 
     try {
@@ -61,7 +86,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $savings_stmt->bind_param('iid', $user_id, $group_id, $total_amount);
       $savings_stmt->execute();
 
+      // Update time_period_remaining in group_membership
+      $update_stmt = $conn->prepare("UPDATE group_membership SET time_period_remaining = time_period_remaining - 1 WHERE user_id = ? AND group_id = ?");
+      $update_stmt->bind_param('ii', $user_id, $group_id);
+      $update_stmt->execute();
+
       $conn->commit();
+      
+      $_SESSION['transaction_id'] = $transaction_id;
+      $_SESSION['total_amount'] = $total_amount;
+      $_SESSION['payment_method'] = $selected_method;
+      $_SESSION['transaction_date'] = date('Y-m-d H:i:s'); // Current date and time
       header("Location: success_payment.php");
       exit;
     } catch (Exception $e) {

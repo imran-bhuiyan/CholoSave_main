@@ -59,9 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['group_id'] = $group_id;
     
             // Insert the user into the group_membership table with status 'approved' and is_admin = 1
-            $membershipQuery = "INSERT INTO group_membership (group_id, user_id, status, is_admin, join_date) VALUES (?, ?, 'approved', 1, NOW())";
+            $membershipQuery = "INSERT INTO group_membership (group_id, user_id, status, is_admin, join_date, time_period_remaining) VALUES (?, ?, 'approved', 1, NOW(),?)";
             $membershipStmt = $conn->prepare($membershipQuery);
-            $membershipStmt->bind_param("ii", $group_id, $_SESSION['user_id']);
+            $membershipStmt->bind_param("iii", $group_id, $_SESSION['user_id'], $time_period);
             
             if ($membershipStmt->execute()) {
                 // Role-checking logic

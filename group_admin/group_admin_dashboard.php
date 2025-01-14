@@ -12,8 +12,7 @@ $user_id = $_SESSION['user_id'];
 if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
     $group_id = $_SESSION['group_id'];
     $user_id = $_SESSION['user_id'];
-    echo 'This is group id: ' . htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8');
-    echo 'This is user id: ' . htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8');
+   
 } else {
     echo 'Group ID is not set in the session.';
 }
@@ -21,6 +20,30 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
 if (!isset($conn)) {
     include 'db.php'; // Ensure database connection
 }
+
+
+// Check if the user is an admin for the group
+$is_admin = false;
+$checkAdminQuery = "SELECT group_admin_id FROM my_group WHERE group_id = ?";
+if ($stmt = $conn->prepare($checkAdminQuery)) {
+    $stmt->bind_param('i', $group_id);
+    $stmt->execute();
+    $stmt->bind_result($group_admin_id);
+    $stmt->fetch();
+    $stmt->close();
+    
+    // If the user is the admin of the group, proceed; otherwise, redirect to an error page
+    if ($group_admin_id === $user_id) {
+        $is_admin = true;
+    }
+}
+
+if (!$is_admin) {
+    // Redirect to error page if the user is not an admin
+    header("Location: /test_project/error_page.php");
+    exit;
+}
+
 
 // Queries
 $total_group_savings_query = "SELECT IFNULL(SUM(amount), 0) AS total_group_savings FROM savings WHERE group_id = ?";
@@ -41,19 +64,19 @@ function fetchSingleValue($conn, $query, $param)
 }
 
 $total_group_savings = fetchSingleValue($conn, $total_group_savings_query, $group_id);
-echo "Total Group Savings: $total_group_savings"; // Debug output
+
 
 $this_month_savings = fetchSingleValue($conn, $month_savings_query, $group_id);
-echo "This Month's Savings: $this_month_savings"; // Debug output
+
 
 $total_members = fetchSingleValue($conn, $total_members_query, $group_id);
-echo "Total Members: $total_members"; // Debug output
+
 
 $new_members = fetchSingleValue($conn, $new_members_query, $group_id);
-echo "New Members This Month: $new_members"; // Debug output
+
 
 $emergency_fund = fetchSingleValue($conn, $emergency_query, $group_id);
-echo "Emergency Fund: $emergency_fund"; // Debug output
+
 
 
 
