@@ -286,9 +286,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
     </div>
 
-    <footer>
-        <p>&copy; 2025 Your Company. All rights reserved.</p>
-    </footer>
+    <?php include 'includes/new_footer.php'; ?>
 
     <script>
         let currentStep = 0;

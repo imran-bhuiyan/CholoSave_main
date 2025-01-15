@@ -75,4 +75,4 @@ include 'includes/header2.php';
     </div>
 </main>
 
-<?php include 'includes/footer.php'; ?>
+<?php include 'includes/new_footer.php'; ?>

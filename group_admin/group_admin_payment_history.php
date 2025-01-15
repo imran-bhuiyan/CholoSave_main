@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /test_project/error_page.php"); // Redirect if session variables are missing
+    header("Location: /test_project/error_page.php");
     exit;
 }
 
@@ -10,9 +10,8 @@ $user_id = $_SESSION['user_id'];
 $group_id = $_SESSION['group_id'];
 
 if (!isset($conn)) {
-    include 'db.php'; // Ensure database connection
+    include 'db.php';
 }
-
 
 // Check if the user is an admin for the group
 $is_admin = false;
@@ -23,38 +22,59 @@ if ($stmt = $conn->prepare($checkAdminQuery)) {
     $stmt->bind_result($group_admin_id);
     $stmt->fetch();
     $stmt->close();
-    
-    // If the user is the admin of the group, proceed; otherwise, redirect to an error page
-    if ($group_admin_id === $user_id) {
-        $is_admin = true;
-    }
+    $is_admin = $group_admin_id === $user_id;
 }
-
 if (!$is_admin) {
-    // Redirect to error page if the user is not an admin
     header("Location: /test_project/error_page.php");
     exit;
 }
 
-
-// Fetch payment history for the logged-in user
+// Fetch payment history
 $paymentHistoryQuery = "
-    SELECT 
-        transaction_id, 
-        amount, 
-        payment_method, 
-        payment_time 
+    SELECT transaction_id, amount, payment_method, payment_time 
     FROM transaction_info
     WHERE user_id = ? AND group_id = ?
     ORDER BY payment_time DESC
 ";
-
 if ($stmt = $conn->prepare($paymentHistoryQuery)) {
     $stmt->bind_param('ii', $user_id, $group_id);
     $stmt->execute();
     $paymentHistoryResult = $stmt->get_result();
 } else {
     die("Error preparing payment history query.");
+}
+
+// Fetch user savings and contributions
+$savingsQuery = "SELECT sum(amount) FROM savings WHERE user_id = ? AND group_id = ?";
+$savings = 0;
+if ($stmt = $conn->prepare($savingsQuery)) {
+    $stmt->bind_param('ii', $user_id, $group_id);
+    $stmt->execute();
+    $stmt->bind_result($savings);
+    $stmt->fetch();
+    $stmt->close();
+}
+
+// Fetch group savings summary
+$groupSavingsQuery = "SELECT SUM(amount) AS total_savings FROM savings WHERE group_id = ?";
+$total_savings = 0;
+if ($stmt = $conn->prepare($groupSavingsQuery)) {
+    $stmt->bind_param('i', $group_id);
+    $stmt->execute();
+    $stmt->bind_result($total_savings);
+    $stmt->fetch();
+    $stmt->close();
+}
+
+// Fetch time period remaining for user
+$timeRemainingQuery = "SELECT time_period_remaining FROM group_membership WHERE user_id = ? AND group_id = ?";
+$time_remaining = 0;
+if ($stmt = $conn->prepare($timeRemainingQuery)) {
+    $stmt->bind_param('ii', $user_id, $group_id);
+    $stmt->execute();
+    $stmt->bind_result($time_remaining);
+    $stmt->fetch();
+    $stmt->close();
 }
 ?>
 
@@ -68,8 +88,6 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="group_member_dashboard_style.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .custom-font {
             font-family: 'Poppins', sans-serif;
@@ -77,7 +95,7 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
     </style>
 </head>
 
-<body class="bg-gray-100 dark-mode-transition">
+<body class="bg-gray-100">
     <div class="flex h-screen">
         <!-- Sidebar -->
         <?php include 'group_admin_sidebar.php'; ?>
@@ -85,21 +103,41 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto">
             <!-- Page Header -->
-            <header class="flex items-center justify-between p-4 bg-white shadow dark-mode-transition">
-                <div class="flex items-center justify-center w-full">
-                    <button id="menu-button" class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 absolute left-2">
-                        <i class="fa-solid fa-bars text-xl"></i>
-                    </button>
-                    <h1 class="text-5xl font-semibold custom-font">
-                        <i class="fa-solid fa-receipt text-blue-600 mr-3"></i>
-                        My Payments
-                    </h1>
-                </div>
+            <header class="flex items-center justify-between p-4 bg-white shadow">
+                <h1 class="text-4xl font-semibold custom-font ml-96">
+                    <i class="fa-solid fa-chart-line text-blue-600 mr-3"></i>
+                    My Payments History
+                </h1>
             </header>
 
-            <div class="p-6 w-full max-w-6xl mx-auto mt-[50px]">
+            <div class="p-6 w-full max-w-6xl mx-auto">
+                <!-- Admin Indicator -->
+                <?php if ($is_admin): ?>
+                <div class="mb-6 p-4 bg-blue-50 border border-blue-200 text-blue-600 rounded-lg">
+                    <i class="fa-solid fa-crown mr-2"></i>
+                    You are the admin of this group.
+                </div>
+                <?php endif; ?>
+
+                <!-- Summary Section -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="p-6 bg-white rounded-lg shadow">
+                        <h2 class="text-xl font-semibold custom-font mb-2">Your Savings</h2>
+                        <p class="text-3xl font-bold text-green-600">BDT <?php echo number_format($savings, 2); ?></p>
+                    </div>
+                    <div class="p-6 bg-white rounded-lg shadow">
+                        <h2 class="text-xl font-semibold custom-font mb-2">Total Group Savings</h2>
+                        <p class="text-3xl font-bold text-blue-600">BDT <?php echo number_format($total_savings, 2); ?></p>
+                    </div>
+                    <div class="p-6 bg-white rounded-lg shadow">
+                        <h2 class="text-xl font-semibold custom-font mb-2">Installment Remaining</h2>
+                        <p class="text-3xl font-bold text-red-600"><?php echo $time_remaining; ?> months</p>
+                    </div>
+                </div>
+
+                <!-- Payment History Table -->
                 <div class="bg-white rounded-lg shadow-lg p-8">
-                    <!-- Payment History Table -->
+                    <h2 class="text-2xl font-semibold custom-font mb-6">Payment History</h2>
                     <div class="overflow-x-auto">
                         <table class="min-w-full table-auto border-collapse bg-gray-50 rounded-lg">
                             <thead>
@@ -135,6 +173,8 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
             </div>
         </div>
     </div>
+
+
     <script>
 
 // Dark mode functionality

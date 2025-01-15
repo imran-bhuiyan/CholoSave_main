@@ -203,3 +203,4 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
 </body>
 
 </html>
+<?php include 'new_footer.php'; ?>

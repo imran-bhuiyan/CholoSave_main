@@ -1,3 +1,6 @@
+
+
+
 <?php
 session_start();
 
@@ -13,7 +16,6 @@ if (!isset($conn)) {
     include 'db.php'; // Ensure database connection
 }
 
-
 // Check if the user is an admin for the group
 $is_admin = false;
 $checkAdminQuery = "SELECT group_admin_id FROM my_group WHERE group_id = ?";
@@ -24,22 +26,18 @@ if ($stmt = $conn->prepare($checkAdminQuery)) {
     $stmt->fetch();
     $stmt->close();
     
-    // If the user is the admin of the group, proceed; otherwise, redirect to an error page
     if ($group_admin_id === $user_id) {
         $is_admin = true;
     }
 }
 
 if (!$is_admin) {
-    // Redirect to error page if the user is not an admin
     header("Location: /test_project/error_page.php");
     exit;
 }
 
-// Check if a payment method filter is set, default to empty if not
 $paymentMethodFilter = isset($_GET['payment_method']) ? $_GET['payment_method'] : '';
 
-// Modify query to fetch payment history for all members of the group, with optional filters for payment method
 $paymentHistoryQuery = "
     SELECT 
         t.transaction_id, 
@@ -66,6 +64,11 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
 } else {
     die("Error preparing payment history query.");
 }
+
+$transactions = [];
+while ($row = $paymentHistoryResult->fetch_assoc()) {
+    $transactions[] = $row;
+}
 ?>
 
 <!DOCTYPE html>
@@ -89,12 +92,9 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
 
 <body class="bg-gray-100 dark-mode-transition">
     <div class="flex h-screen">
-        <!-- Sidebar -->
         <?php include 'group_admin_sidebar.php'; ?>
 
-        <!-- Main Content -->
         <div class="flex-1 overflow-y-auto">
-            <!-- Page Header -->
             <header class="flex items-center justify-between p-4 bg-white shadow dark-mode-transition">
                 <div class="flex items-center justify-center w-full">
                     <button id="menu-button" class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 absolute left-2">
@@ -109,7 +109,6 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
 
             <div class="p-6 w-full max-w-6xl mx-auto mt-[50px]">
                 <div class="bg-white rounded-lg shadow-lg p-8">
-                    <!-- Filter by Payment Method (bKash, Rocket, Nagad) -->
                     <div class="mb-6">
                         <form method="GET" action="">
                             <label for="payment_method" class="block text-gray-700 font-medium mb-2">Filter by Payment Method:</label>
@@ -123,9 +122,15 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
                         </form>
                     </div>
 
+                    <!-- Search Bar -->
+                    <div class="mb-6">
+                        <label for="search" class="block text-gray-700 font-medium mb-2">Search by Transaction ID:</label>
+                        <input id="search" type="text" class="p-2 border border-gray-300 rounded-md w-full" placeholder="Enter transaction ID...">
+                    </div>
+
                     <!-- Payment History Table -->
                     <div class="overflow-x-auto">
-                        <table class="min-w-full table-auto border-collapse bg-gray-50 rounded-lg">
+                        <table id="payment-table" class="min-w-full table-auto border-collapse bg-gray-50 rounded-lg">
                             <thead>
                                 <tr class="bg-blue-100 border-b">
                                     <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Serial</th>
@@ -136,22 +141,17 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
                                     <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">Payment Time</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200">
+                            <tbody id="payment-table-body" class="divide-y divide-gray-200">
                                 <?php
-                                if ($paymentHistoryResult->num_rows > 0) {
-                                    $serial = 1;
-                                    while ($row = $paymentHistoryResult->fetch_assoc()) {
-                                        echo "<tr class='hover:bg-gray-100 transition'>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . $serial++ . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['member_name'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['transaction_id'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['amount'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['payment_method'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['payment_time'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "</tr>";
-                                    }
-                                } else {
-                                    echo "<tr><td colspan='6' class='px-6 py-4 text-center text-gray-600'>No payment history found.</td></tr>";
+                                foreach ($transactions as $index => $row) {
+                                    echo "<tr class='hover:bg-gray-100 transition'>";
+                                    echo "<td class='px-6 py-4 text-gray-800'>" . ($index + 1) . "</td>";
+                                    echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['member_name'], ENT_QUOTES, 'UTF-8') . "</td>";
+                                    echo "<td class='px-6 py-4 text-gray-800 transaction-id'>" . htmlspecialchars($row['transaction_id'], ENT_QUOTES, 'UTF-8') . "</td>";
+                                    echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['amount'], ENT_QUOTES, 'UTF-8') . "</td>";
+                                    echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['payment_method'], ENT_QUOTES, 'UTF-8') . "</td>";
+                                    echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['payment_time'], ENT_QUOTES, 'UTF-8') . "</td>";
+                                    echo "</tr>";
                                 }
                                 ?>
                             </tbody>
@@ -161,9 +161,29 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
             </div>
         </div>
     </div>
+
     <script>
-        // Dark mode functionality
-        let isDarkMode = localStorage.getItem('darkMode') === 'true';
+        const searchInput = document.getElementById('search');
+        const tableBody = document.getElementById('payment-table-body');
+
+        searchInput.addEventListener('input', function () {
+            const filter = searchInput.value.toLowerCase();
+            const rows = tableBody.getElementsByTagName('tr');
+
+            Array.from(rows).forEach(row => {
+                const transactionIdCell = row.querySelector('.transaction-id');
+                const transactionId = transactionIdCell.textContent.toLowerCase();
+                
+                if (transactionId.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+                // Dark mode functionality
+                let isDarkMode = localStorage.getItem('darkMode') === 'true';
         const body = document.body;
         const themeToggle = document.getElementById('theme-toggle');
         const themeIcon = themeToggle.querySelector('i');

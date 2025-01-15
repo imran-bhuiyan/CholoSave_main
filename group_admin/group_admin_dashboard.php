@@ -282,3 +282,5 @@ $emergency_fund = fetchSingleValue($conn, $emergency_query, $group_id);
 </body>
 
 </html>
+
+<?php include 'new_footer.php'; ?>

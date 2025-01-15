@@ -112,14 +112,14 @@ $_SESSION['investment_data'] = $investments;
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Top Bar -->
-            <header class="glass-effect border-b border-gray-200 shadow-sm">
+            <header class="glass-effect border-b border-gray-200 shadow-sm ">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
                             <button id="menu-button" class="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100">
                                 <i class="fa-solid fa-bars text-xl"></i>
                             </button>
-                            <h1 class="text-3xl font-bold text-gray-900 ml-4">
+                            <h1 class="text-3xl font-bold text-gray-900 ml-96">
                                 <i class="fa-solid fa-chart-line text-blue-600 mr-3"></i>
                                 Investment History
                             </h1>

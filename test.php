@@ -3,68 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forum Design</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Human Stories & Ideas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #fff;
+            min-height: 100vh;
+        }
+
+        header {
+            padding: 2rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: #333;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #4CAF50;
+        }
+
+        main {
+            padding-top: 120px;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+
+        .hero-content {
+            max-width: 600px;
+        }
+
+        h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background-color: #1a1a1a;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background-color: #333;
+        }
+
+        .decoration {
+            position: relative;
+        }
+
+        .flower {
+            width: 150px;
+            height: 150px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            position: relative;
+            transform: rotate(45deg);
+        }
+
+        .geometric {
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            border: 2px solid #1a1a1a;
+            transform: rotate(-15deg);
+        }
+
+        @media (max-width: 768px) {
+            main {
+                flex-direction: column;
+                text-align: center;
+                padding-top: 100px;
+            }
+
+            h1 {
+                font-size: 3rem;
+            }
+
+            .decoration {
+                margin-top: 3rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
-    <div class="container mx-auto p-4">
-        <!-- Header -->
-        <header class="bg-white shadow p-4 rounded-lg mb-6">
-            <h1 class="text-2xl font-bold text-blue-600">Forum</h1>
-        </header>
+<body>
+    <?php
+    // You can add PHP logic here, for example:
+    $pageTitle = "Human Stories & Ideas";
+    $subtitle = "A place to read, write, and deepen your understanding";
+    $currentYear = date("Y");
+    ?>
 
-        <div class="grid grid-cols-12 gap-4">
-            <!-- Question Feed -->
-            <div class="col-span-3 bg-white p-4 shadow rounded-lg">
-                <h2 class="text-lg font-semibold mb-4">Questions</h2>
-                <ul class="space-y-2">
-                    <li class="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">How to start with React?</li>
-                    <li class="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">Best Python libraries for data science?</li>
-                    <li class="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">What is Tailwind CSS?</li>
-                </ul>
-            </div>
+    <header>
+      <?php include('includes/header2.php') ?>
+    </header>
 
-            <!-- Main Thread -->
-            <div class="col-span-6 bg-white p-4 shadow rounded-lg">
-                <h2 class="text-xl font-bold mb-4">How to start with React?</h2>
-                <p class="text-gray-700 mb-6">React is a JavaScript library for building user interfaces. To get started, you can use Create React App or dive into Vite for a faster setup.</p>
-
-                <h3 class="text-lg font-semibold mb-2">Replies</h3>
-                <div class="space-y-4">
-                    <div class="p-4 bg-gray-100 rounded">
-                        <p class="text-gray-700">Start with the official React documentation. It's comprehensive and easy to follow.</p>
-                        <p class="text-sm text-gray-500 mt-2">- User123</p>
-                    </div>
-                    <div class="p-4 bg-gray-100 rounded">
-                        <p class="text-gray-700">You can also check out tutorials on YouTube for quick hands-on experience.</p>
-                        <p class="text-sm text-gray-500 mt-2">- DevGuru</p>
-                    </div>
-                </div>
-
-                <!-- Reply Input -->
-                <div class="mt-6">
-                    <textarea class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Write your reply..."></textarea>
-                    <button class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Post Reply</button>
-                </div>
-            </div>
-
-            <!-- Sidebar -->
-            <div class="col-span-3 bg-white p-4 shadow rounded-lg">
-                <h2 class="text-lg font-semibold mb-4">Categories</h2>
-                <ul class="space-y-2">
-                    <li class="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">JavaScript</li>
-                    <li class="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">Python</li>
-                    <li class="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">CSS</li>
-                </ul>
-
-                <h2 class="text-lg font-semibold mt-6 mb-4">Trending Topics</h2>
-                <ul class="space-y-2">
-                    <li class="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">Next.js vs. React</li>
-                    <li class="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">Best IDEs for Web Development</li>
-                    <li class="p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">AI in Web Development</li>
-                </ul>
-            </div>
+    <main>
+        <div class="hero-content">
+            <h1><?php echo $pageTitle; ?></h1>
+            <p class="subtitle"><?php echo $subtitle; ?></p>
+            <a href="#start" class="cta-button">Start reading</a>
         </div>
-    </div>
+        <div class="decoration">
+            <div class="flower"></div>
+            <div class="geometric"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; <?php echo $currentYear; ?> Human Stories & Ideas. All rights reserved.</p>
+    </footer>
 </body>
 </html>
+
+

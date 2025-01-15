@@ -66,7 +66,7 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
                     <h1 class="text-5xl font-semibold custom-font">
-                        <i class="fa-solid fa-receipt mr-3"></i>
+                        <i class="fa-solid fa-receipt mr-3 text-blue-600"></i>
                         Payment History
                     </h1>
                 </div>
