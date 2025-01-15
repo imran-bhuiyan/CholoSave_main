@@ -284,7 +284,7 @@ if ($joinedGroupsResult) {
 
         <!-- Header Section -->
         <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold text-gray-800 mb-6">Groups</h1>
+            <h1 class="text-4xl font-bold text-gray-800 mb-6"></h1>
             <div class="inline-flex rounded-lg bg-white shadow-sm p-1 space-x-1">
                 <button onclick="showGroups('all')"
                     class="tab-button px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none active"

@@ -12,8 +12,8 @@ $user_id = $_SESSION['user_id'];
 if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
     $group_id = $_SESSION['group_id'];
     $user_id = $_SESSION['user_id'];
-    echo 'This is group id: ' . htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8');
-    echo 'This is user id: ' . htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8');
+    // echo 'This is group id: ' . htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8');
+    // echo 'This is user id: ' . htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8');
 } else {
     echo 'Group ID is not set in the session.';
 }
@@ -41,19 +41,18 @@ function fetchSingleValue($conn, $query, $param)
 }
 
 $total_group_savings = fetchSingleValue($conn, $total_group_savings_query, $group_id);
-echo "Total Group Savings: $total_group_savings"; // Debug output
+
 
 $this_month_savings = fetchSingleValue($conn, $month_savings_query, $group_id);
-echo "This Month's Savings: $this_month_savings"; // Debug output
+
 
 $total_members = fetchSingleValue($conn, $total_members_query, $group_id);
-echo "Total Members: $total_members"; // Debug output
+
 
 $new_members = fetchSingleValue($conn, $new_members_query, $group_id);
-echo "New Members This Month: $new_members"; // Debug output
 
 $emergency_fund = fetchSingleValue($conn, $emergency_query, $group_id);
-echo "Emergency Fund: $emergency_fund"; // Debug output
+
 
 
 
@@ -71,6 +70,7 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
     <style>
         .custom-font {
             font-family: 'Poppins', sans-serif;
@@ -92,8 +92,8 @@ echo "Emergency Fund: $emergency_fund"; // Debug output
                         class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 absolute left-2">
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
-                    <h1 class="text-5xl font-semibold custom-font">
-                        <i class="fa-solid fa-money-bill-transfer mr-3"></i>
+                    <h1 class="text-3xl font-semibold custom-font">
+                        <i class="fa-solid fa-tachometer-alt text-blue-500 mr-3"></i>
                         Dashboard
                     </h1>
                 </div>

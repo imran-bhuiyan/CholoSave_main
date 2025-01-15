@@ -2,28 +2,17 @@
 session_start();
 
 if (!isset($_SESSION['group_id']) || !isset($_SESSION['user_id'])) {
-    header("Location: /test_project/error_page.php"); // Redirect if session variables are missing
+    header("Location: /test_project/error_page.php");
     exit;
 }
 
 $group_id = $_SESSION['group_id'];
 $user_id = $_SESSION['user_id'];
 
-if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
-    $group_id = $_SESSION['group_id'];
-    $user_id = $_SESSION['user_id'];
-    echo 'This is group id: ' . htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8');
-    echo 'This is user id: ' . htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8');
-} else {
-    echo 'Group ID is not set in the session.';
-}
-
-
 if (!isset($conn)) {
-    include 'db.php'; // Ensure database connection
+    include 'db.php';
 }
 
-// Fetch members' details from the database
 $memberQuery = "
     SELECT u.id, u.name, u.phone_number, g.join_date, g.is_admin, SUM(s.amount) AS group_contribution, g.time_period_remaining as installment
     FROM users u
@@ -33,8 +22,6 @@ $memberQuery = "
     GROUP BY u.id, u.name, u.phone_number, g.join_date, g.is_admin
 ";
 
-
-
 if ($stmt = $conn->prepare($memberQuery)) {
     $stmt->bind_param('i', $group_id);
     $stmt->execute();
@@ -42,144 +29,163 @@ if ($stmt = $conn->prepare($memberQuery)) {
 } else {
     die("Error preparing statement.");
 }
-
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced CholoSave Dashboard</title>
+    <title>CholoSave Members Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" type="text/css" href="group_member_dashboard_style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        .custom-font {
-            font-family: 'Poppins', sans-serif;
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .table-container {
+            scrollbar-width: thin;
+            scrollbar-color: #CBD5E0 #EDF2F7;
+        }
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #EDF2F7;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background-color: #CBD5E0;
+            border-radius: 4px;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 
-<body class="bg-gray-100 dark-mode-transition">
+<body class="bg-gray-50">
     <div class="flex h-screen">
-        <!-- Sidebar -->
         <?php include 'sidebar.php'; ?>
-    
-        <!-- Main Content -->
-        <div class="flex-1 overflow-y-auto ">
-            <!-- Table Header -->
-            <header class="flex items-center justify-between p-4 bg-white shadow dark-mode-transition">
-                <div class="flex items-center justify-center w-full">
-                    <button id="menu-button"
-                        class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 absolute left-2">
-                        <i class="fa-solid fa-bars text-xl"></i>
-                    </button>
-                    <h1 class="text-5xl font-semibold custom-font">
-                        <i class="fa-solid fa-money-bill-transfer mr-3"></i>
-                        Members
 
-                    </h1>
+        <div class="flex-1 overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <button id="menu-button" class="md:hidden mr-4 text-gray-600 hover:text-gray-900">
+                            <i class="fa-solid fa-bars text-xl"></i>
+                        </button>
+                        <h1 class="text-2xl font-semibold text-gray-800 m ml-96">
+                            <i class="fa-solid fa-users mr-2 text-blue-600"></i>
+                            Group Members
+                        </h1>
+                    </div>
+                    
                 </div>
             </header>
-          
-        <div class="p-6 w-full max-w-6xl mx-auto mt-[50px]">
-            <div class="bg-white rounded-lg shadow-lg p-8">
-                
 
-                <!-- Member List Table -->
-                <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto border-collapse bg-gray-50 rounded-lg">
-                        <thead>
-                            <tr class="bg-blue-100 border-b">
-                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Name</th>
-                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Phone Number</th>
-                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Join Date</th>
-                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Role</th>
-                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Group Contribution (BDT)</th>
-                                <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider border border-purple-400">Installment Remaining</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            <?php
-                            // Check if there are members in the result
-                            if ($result->num_rows > 0) {
-                                while ($row = $result->fetch_assoc()) {
-                                    $role = $row['is_admin'] == 1 ? 'Admin' : 'Member';
-                                    echo "<tr class='hover:bg-gray-100 transition border border-purple-400'>";
-                                    echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                    echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . htmlspecialchars($row['phone_number'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                    echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . htmlspecialchars($row['join_date'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                    echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . $role . "</td>";
-                                    echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . (isset($row['group_contribution']) ? htmlspecialchars($row['group_contribution'], ENT_QUOTES, 'UTF-8') : '0') . " BDT</td>";
-                                    echo "<td class='px-6 py-4 text-gray-800 border border-purple-400'>" . (isset($row['installment']) ? htmlspecialchars($row['installment'], ENT_QUOTES, 'UTF-8') : '0') . " Time</td>";
+            <!-- Main Content -->
+            <main class="p-6 overflow-auto h-[calc(100vh-4rem)]">
+                <div class="max-w-7xl mx-auto animate-fade-in">
+                    <!-- Stats Cards -->
+                    
 
-                                    echo "</tr>";
-                                }
-                            } else {
-                                echo "<tr><td colspan='5' class='px-6 py-4 text-center text-gray-600'>No members found.</td></tr>";
-                            }
-                            ?>
-                        </tbody>
-                    </table>
+                    <!-- Members Table -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                            <h2 class="text-lg font-semibold text-gray-800">Member Details</h2>
+                        </div>
+                        <div class="table-container overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone Number</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Join Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contribution</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Installments Left</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <?php
+                                    if ($result->num_rows > 0) {
+                                        while ($row = $result->fetch_assoc()) {
+                                            $role = $row['is_admin'] == 1 ? 'Admin' : 'Member';
+                                            $roleClass = $row['is_admin'] == 1 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800';
+                                            ?>
+                                            <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="flex items-center">
+                                                        <div class="flex-shrink-0 h-10 w-10">
+                                                            <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                                                <i class="fa-solid fa-user text-gray-500"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="ml-4">
+                                                            <div class="text-sm font-medium text-gray-900">
+                                                                <?php echo htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8'); ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <?php echo htmlspecialchars($row['phone_number'], ENT_QUOTES, 'UTF-8'); ?>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <?php echo date('M d, Y', strtotime($row['join_date'])); ?>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $roleClass; ?>">
+                                                        <?php echo $role; ?>
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <?php echo number_format($row['group_contribution'] ?? 0) . ' BDT'; ?>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="flex items-center">
+                                                        <span class="ml-2 text-sm text-gray-500"><?php echo $row['installment']; ?></span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <?php
+                                        }
+                                    } else {
+                                        echo '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No members found</td></tr>';
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </main>
         </div>
     </div>
-    </div>
-
-
 
     <script>
+        // Menu toggle for mobile
+        const menuButton = document.getElementById('menu-button');
+        const sidebar = document.querySelector('.sidebar');
 
-// Dark mode functionality
-let isDarkMode = localStorage.getItem('darkMode') === 'true';
-const body = document.body;
-const themeToggle = document.getElementById('theme-toggle');
-const themeIcon = themeToggle.querySelector('i');
-const themeText = themeToggle.querySelector('span');
-
-function updateTheme() {
-    if (isDarkMode) {
-        body.classList.add('dark-mode');
-        themeIcon.classList.remove('fa-moon');
-        themeIcon.classList.add('fa-sun');
-        themeText.textContent = 'Light Mode';
-    } else {
-        body.classList.remove('dark-mode');
-        themeIcon.classList.remove('fa-sun');
-        themeIcon.classList.add('fa-moon');
-        themeText.textContent = 'Dark Mode';
-    }
-}
-
-// Initialize theme
-updateTheme();
-
-themeToggle.addEventListener('click', () => {
-    isDarkMode = !isDarkMode;
-    localStorage.setItem('darkMode', isDarkMode);
-    updateTheme();
-});
-
-
-window.addEventListener('resize', handleResize);
-handleResize();
-
-// Add smooth scroll behavior
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-            behavior: 'smooth'
+        menuButton?.addEventListener('click', () => {
+            sidebar?.classList.toggle('hidden');
         });
-    });
-});
-</script>
-</body>
 
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                sidebar?.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
 </html>

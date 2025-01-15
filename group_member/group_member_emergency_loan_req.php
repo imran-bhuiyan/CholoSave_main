@@ -43,6 +43,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $errors['returnDate'] = 'Return date must be today or later.';
     }
 
+    // Check emergency fund sufficiency
+    if (empty($errors)) {
+        $fundQuery = "SELECT emergency_fund FROM my_group WHERE group_id = ?";
+        if ($fundStmt = $conn->prepare($fundQuery)) {
+            $fundStmt->bind_param('i', $group_id);
+            $fundStmt->execute();
+            $fundStmt->bind_result($emergencyFund);
+            if ($fundStmt->fetch()) {
+                if ($amount > $emergencyFund) {
+                    $errors['emergency_fund'] = 'The requested loan amount exceeds the available emergency fund.';
+                }
+            } else {
+                $errors['emergency_fund'] = 'Group not found or emergency fund data unavailable.';
+            }
+            $fundStmt->close();
+        } else {
+            $errors['query'] = 'Error preparing emergency fund query.';
+        }
+    }
+
     // If no errors, proceed with loan request submission
     if (empty($errors)) {
         // Check if the user already has an outstanding loan in the same group
@@ -97,10 +117,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $loanCheckStmt->close();
         }
     }
+
+    // Display errors
+   
 }
 ?>
 
-<!-- HTML Form remains the same as in your original code -->
+
+
 
 
 <!DOCTYPE html>
@@ -179,10 +203,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 absolute left-2">
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
-                    <h1 class="text-5xl font-semibold custom-font">
-                        <i class="fa-solid fa-money-bill-transfer mr-3"></i>
+                    <h1 class="text-2xl font-semibold custom-font">
+                        <i class="fa-solid fa-hand-holding-usd mr-2 text-blue-600"></i>
                         Loan Request
-
                     </h1>
                 </div>
             </header>
@@ -193,12 +216,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="bg-white rounded-lg shadow-lg p-8">
                         <!-- Form Header -->
                         <div class="mb-8 text-center">
-                            <h2 class="text-2xl font-semibold custom-font text-gray-800">
-                                <i class="fas fa-hand-holding-usd mr-2"></i>
-                                Emergency Loan Request Form
+                            <h2 class="text-1xl font-semibold custom-font text-red-800">
+                                <i class="fa-solid fa-file-signature mr-2"></i>
+                                Please fill in the details below to submit your loan request
                             </h2>
-                            <p class="text-gray-600 mt-2">Please fill in the details below to submit your loan request
-                            </p>
+                        
                         </div>
 
                         <!-- Loan Request Form -->
@@ -206,7 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="space-y-6">
                                 <!-- Amount Field -->
                                 <div>
-                                    <label for="amount" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <label for="amount" class="block text-sm font-medium font-semibold mb-2">
                                         Loan Amount (BDT)
                                     </label>
                                     <div class="relative">
@@ -219,9 +241,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </div>
                                     <!-- Error message for amount -->
                                     <div id="amountError" class="text-red-500 text-sm mt-2">
+    <?php 
+    echo isset($errors['amount']) ? $errors['amount'] : ''; 
+    echo isset($errors['emergency_fund']) ? $errors['emergency_fund'] : ''; 
+    ?>
+</div>
 
-                                        <?php echo isset($errors['amount']) ? $errors['amount'] : ''; ?>
-                                    </div>
                                 </div>
 
                                 <!-- Quick Amount Selection -->
@@ -271,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             <!-- Reason Field -->
                             <div>
-                                <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">
+                                <label for="reason" class="block text-sm font-medium  mb-2">
                                     Reason for Loan
                                 </label>
                                 <textarea id="reason" name="reason" rows="4"

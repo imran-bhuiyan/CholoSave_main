@@ -37,23 +37,146 @@ if (!$is_admin) {
 }
 
 
-// Handle Approve or Reject actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['loan_id'], $_POST['action'])) {
     $loan_id = $_POST['loan_id'];
     $action = $_POST['action'];
 
-    if (in_array($action, ['approved', 'declined'])) {
-        $updateLoanStatusQuery = "UPDATE loan_request SET status = ? , approve_date = CURDATE()  WHERE id = ? AND group_id = ?";
-        if ($stmt = $conn->prepare($updateLoanStatusQuery)) {
-            $stmt->bind_param('sii', $action, $loan_id, $group_id);
-            if ($stmt->execute()) {
-                $message = "Loan status updated successfully.";
-            } else {
-                $message = "Failed to update loan status.";
+    // Start transaction
+    $conn->begin_transaction();
+
+    try {
+        if (in_array($action, ['approved', 'declined'])) {
+            // Get loan request details
+            $getLoanDetailsQuery = "
+                SELECT lr.user_id, lr.amount, mg.group_name, mg.emergency_fund 
+                FROM loan_request lr
+                JOIN my_group mg ON lr.group_id = mg.group_id
+                WHERE lr.id = ? AND lr.group_id = ?
+            ";
+            
+            if ($stmt = $conn->prepare($getLoanDetailsQuery)) {
+                $stmt->bind_param('ii', $loan_id, $group_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $loanDetails = $result->fetch_assoc();
+                $stmt->close();
+                
+                if ($action === 'approved') {
+                    // Check if emergency fund is sufficient
+                    if ($loanDetails['emergency_fund'] < $loanDetails['amount']) {
+                        throw new Exception("Insufficient emergency fund balance.");
+                    }
+                    
+                    // Update emergency fund
+                    $newEmergencyFund = $loanDetails['emergency_fund'] - $loanDetails['amount'];
+                    $updateEmergencyFundQuery = "
+                        UPDATE my_group 
+                        SET emergency_fund = ? 
+                        WHERE group_id = ?
+                    ";
+                    
+                    if ($stmt = $conn->prepare($updateEmergencyFundQuery)) {
+                        $stmt->bind_param('di', $newEmergencyFund, $group_id);
+                        $stmt->execute();
+                        $stmt->close();
+                    }
+                    
+                    // Create approval notification
+                    $notificationTitle = "Loan Request Approved";
+                    $notificationMessage = "Your loan request for BDT {$loanDetails['amount']} in group '{$loanDetails['group_name']}' has been approved.";
+                    
+                    $insertNotificationQuery = "
+                        INSERT INTO notifications (
+                            target_user_id,
+                            target_group_id,
+                            type,
+                            title,
+                            message,
+                            status
+                        ) VALUES (?, ?, 'loan_approval', ?, ?, 'unread')
+                    ";
+                    
+                    if ($stmt = $conn->prepare($insertNotificationQuery)) {
+                        $stmt->bind_param('iiss', 
+                            $loanDetails['user_id'],
+                            $group_id,
+                            $notificationTitle,
+                            $notificationMessage
+                        );
+                        $stmt->execute();
+                        $stmt->close();
+                    }
+                } else {
+                    // Create rejection notification
+                    $notificationTitle = "Loan Request Declined";
+                    $notificationMessage = "Your loan request for BDT {$loanDetails['amount']} in group '{$loanDetails['group_name']}' has been declined.";
+                    
+                    $insertNotificationQuery = "
+                        INSERT INTO notifications (
+                            target_user_id,
+                            target_group_id,
+                            type,
+                            title,
+                            message,
+                            status
+                        ) VALUES (?, ?, 'loan_approval', ?, ?, 'unread')
+                    ";
+                    
+                    if ($stmt = $conn->prepare($insertNotificationQuery)) {
+                        $stmt->bind_param('iiss', 
+                            $loanDetails['user_id'],
+                            $group_id,
+                            $notificationTitle,
+                            $notificationMessage
+                        );
+                        $stmt->execute();
+                        $stmt->close();
+                    }
+                }
             }
-        } else {
-            $message = "Error preparing loan status update query.";
+
+            // Update loan status
+            $updateLoanStatusQuery = "
+                UPDATE loan_request 
+                SET status = ?, approve_date = CURDATE() 
+                WHERE id = ? AND group_id = ?
+            ";
+            
+            if ($stmt = $conn->prepare($updateLoanStatusQuery)) {
+                $stmt->bind_param('sii', $action, $loan_id, $group_id);
+                $stmt->execute();
+                $stmt->close();
+            }
         }
+
+        // Commit transaction
+        $conn->commit();
+        $message = "Loan request " . ($action === 'approved' ? 'approved' : 'declined') . " successfully.";
+        
+        // Show success message using SweetAlert
+        echo "<script>
+                Swal.fire({
+                    title: 'Success!',
+                    text: '$message',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+              </script>";
+              
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $conn->rollback();
+        $errorMessage = $e->getMessage();
+        
+        // Show error message using SweetAlert
+        echo "<script>
+                Swal.fire({
+                    title: 'Error!',
+                    text: '$errorMessage',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+              </script>";
     }
 }
 

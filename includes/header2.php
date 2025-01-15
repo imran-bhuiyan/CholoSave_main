@@ -133,7 +133,7 @@
             <div class="flex items-center justify-between h-20">
                 <!-- Logo -->
                 <div class="logo flex items-center space-x-4">
-                    <a href="/test_project/portfolio.php" class="flex items-center">
+                    <a href="/test_project/user_landing_page.php" class="flex items-center">
                         Cholo<span class="brand">Save</span>
                     </a>
                 </div>
@@ -161,20 +161,11 @@
 
                     <!-- Savings Section -->
                     <div class="relative group">
-                        <button
+                        <a href="/test_project/portfolio.php"
                             class="nav-item flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-gray-900">
-                            <i class="fas fa-piggy-bank text-lg"></i>
-                            <span class="font-medium">Savings</span>
-                        </button>
-                        <div
-                            class="absolute left-0 w-48 mt-2 bg-white rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform -translate-y-2 group-hover:translate-y-0">
-                            <div class="py-2">
-                                <a href="/contribution.php"
-                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-500 transition-colors duration-200">Contribution</a>
-                                <a href="/withdrawals.php"
-                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-500 transition-colors duration-200">Withdrawals</a>
-                            </div>
-                        </div>
+                            <i class="fas fa-tachometer-alt text-lg"></i> <!-- Dashboard icon -->
+                            <span class="font-medium">Dashboard</span>
+                        </a>
                     </div>
 
                     <!-- Investments Section -->
@@ -210,14 +201,14 @@
 
                     <!-- Notifications -->
                     <div class="relative">
-                        <button
-                            class="nav-item flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-gray-900">
-                            <div class="relative">
-                                <i class="fas fa-bell text-lg"></i>
-                                <span class="notification-badge">3</span>
-                            </div>
-                        </button>
-                    </div>
+    <a href="/test_project/notification.php" class="nav-item flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-gray-900">
+        <div class="relative">
+            <i class="fas fa-bell text-lg"></i>
+            <span class="notification-badge">3</span>
+        </div>
+    </a>
+</div>
+
 
                     <!-- Profile Section -->
                     <div class="relative group">

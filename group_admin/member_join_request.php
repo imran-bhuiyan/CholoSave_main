@@ -18,26 +18,23 @@ if (!isset($conn)) {
 
 // Check if the user is an admin for the group
 $is_admin = false;
-$checkAdminQuery = "SELECT group_admin_id FROM my_group WHERE group_id = ?";
+$checkAdminQuery = "SELECT group_admin_id, group_name FROM my_group WHERE group_id = ?";
 if ($stmt = $conn->prepare($checkAdminQuery)) {
     $stmt->bind_param('i', $group_id);
     $stmt->execute();
-    $stmt->bind_result($group_admin_id);
+    $stmt->bind_result($group_admin_id, $group_name);
     $stmt->fetch();
     $stmt->close();
     
-    // If the user is the admin of the group, proceed; otherwise, redirect to an error page
     if ($group_admin_id === $user_id) {
         $is_admin = true;
     }
 }
 
 if (!$is_admin) {
-    // Redirect to error page if the user is not an admin
     header("Location: /test_project/error_page.php");
     exit;
 }
-
 
 $joinRequestsQuery = "
     SELECT 
@@ -71,41 +68,82 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
     $current_date = date('Y-m-d');
 
-    if ($action == 'approve') {
-        $getTimePeriodQuery = "SELECT time_period FROM my_group WHERE group_id = ?";
-        if ($stmt = $conn->prepare($getTimePeriodQuery)) {
-            $stmt->bind_param('i', $group_id);
-            $stmt->execute();
-            $stmt->bind_result($time_period);
-            $stmt->fetch();
-            $stmt->close();
+    // Start transaction
+    $conn->begin_transaction();
+
+    try {
+        if ($action == 'approve') {
+            // Get group time period
+            $getTimePeriodQuery = "SELECT time_period FROM my_group WHERE group_id = ?";
+            if ($stmt = $conn->prepare($getTimePeriodQuery)) {
+                $stmt->bind_param('i', $group_id);
+                $stmt->execute();
+                $stmt->bind_result($time_period);
+                $stmt->fetch();
+                $stmt->close();
+            }
+
+            // Update membership status
+            $updateQuery = "
+                UPDATE group_membership 
+                SET status = 'approved', join_date = ?, time_period_remaining = ? 
+                WHERE user_id = ? AND group_id = ?
+            ";
+            if ($stmt = $conn->prepare($updateQuery)) {
+                $stmt->bind_param('siii', $current_date, $time_period, $user_id_to_update, $group_id);
+                $stmt->execute();
+                $stmt->close();
+            }
+
+            // Create notification
+            $notificationTitle = "Join Request Approved";
+            $notificationMessage = "Your request to join the group '$group_name' has been approved. Welcome to the group!";
+            
+            $insertNotificationQuery = "
+                INSERT INTO notifications (
+                    target_user_id,
+                    target_group_id,
+                    type,
+                    title,
+                    message,
+                    status
+                ) VALUES (?, ?, 'join_request', ?, ?, 'unread')
+            ";
+            
+            if ($stmt = $conn->prepare($insertNotificationQuery)) {
+                $stmt->bind_param('iiss', 
+                    $user_id_to_update,
+                    $group_id,
+                    $notificationTitle,
+                    $notificationMessage
+                );
+                $stmt->execute();
+                $stmt->close();
+            }
+
+        } elseif ($action == 'reject') {
+            $updateQuery = "UPDATE group_membership SET status = 'declined' WHERE user_id = ? AND group_id = ?";
+            if ($stmt = $conn->prepare($updateQuery)) {
+                $stmt->bind_param('ii', $user_id_to_update, $group_id);
+                $stmt->execute();
+                $stmt->close();
+            }
         }
 
-        $updateQuery = "
-            UPDATE group_membership 
-            SET status = 'approved', join_date = ?, time_period_remaining = ? 
-            WHERE user_id = ? AND group_id = ?
-        ";
-        if ($stmt = $conn->prepare($updateQuery)) {
-            $stmt->bind_param('siii', $current_date, $time_period, $user_id_to_update, $group_id);
-            if ($stmt->execute()) {
-                echo "<script>
-                        window.location.href = 'member_join_request.php';
-                      </script>";
-            }
-            $stmt->close();
-        }
-    } elseif ($action == 'reject') {
-        $updateQuery = "UPDATE group_membership SET status = 'declined' WHERE user_id = ? AND group_id = ?";
-        if ($stmt = $conn->prepare($updateQuery)) {
-            $stmt->bind_param('ii', $user_id_to_update, $group_id);
-            if ($stmt->execute()) {
-                echo "<script>
-                        window.location.href = 'member_join_request.php';
-                      </script>";
-            }
-            $stmt->close();
-        }
+        // Commit transaction
+        $conn->commit();
+        
+        echo "<script>
+                window.location.href = 'member_join_request.php';
+              </script>";
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $conn->rollback();
+        error_log("Error processing join request: " . $e->getMessage());
+        echo "<script>
+                alert('An error occurred. Please try again.');
+                window.location.href = 'member_join_request.php';
+              </script>";
     }
 }
 ?>

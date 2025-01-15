@@ -1,60 +1,99 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: /test_project/login.php");
+    exit();
+}
+
+include 'includes/header2.php';
+
+// Add database connection
+require_once 'db.php'; // Make sure this file exists with your database credentials
+
+// Fetch user name from database
+$user_id = $_SESSION['user_id'];
+$sql = "SELECT name FROM users WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    $user = $result->fetch_assoc();
+    $user_name = $user['name'];
+} else {
+    $user_name = "User"; // Default fallback
+}
+
+$stmt->close();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Human Stories & Ideas</title>
+    <title>Cholosave</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: 'Poppins', system-ui, -apple-system, sans-serif;
         }
 
         body {
             background-color: #fff;
-            min-height: 100vh;
+            min-height: 80vh;
+            opacity: 0;
+            animation: fadeInPage 1s ease-in forwards;
         }
 
-        header {
-            padding: 2rem;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
+        @keyframes fadeInPage {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
-        .logo {
-            font-size: 1.2rem;
-            font-weight: 500;
-            color: #333;
-            text-decoration: none;
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            color: #333;
-            text-decoration: none;
-            font-size: 1rem;
-            transition: color 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            color: #4CAF50;
+        @keyframes fadeInButton {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         main {
@@ -71,13 +110,15 @@
 
         .hero-content {
             max-width: 600px;
+            animation: slideInLeft 1s ease-out 0.5s forwards;
+            opacity: 0;
         }
 
         h1 {
-            font-size: 4rem;
+            font-size: 3rem;
             line-height: 1.1;
             margin-bottom: 1.5rem;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .subtitle {
@@ -88,39 +129,38 @@
 
         .cta-button {
             display: inline-block;
-            padding: 1rem 2rem;
-            background-color: #1a1a1a;
+            padding: 0.7rem 2rem;
+            background-color: rgb(0, 63, 238);
             color: white;
             text-decoration: none;
-            border-radius: 4px;
+            border-radius: 10px;
             transition: background-color 0.3s ease;
+            opacity: 0;
+            animation: fadeInButton 0.5s ease-out 1.5s forwards;
         }
 
         .cta-button:hover {
             background-color: #333;
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
         }
 
         .decoration {
             position: relative;
+            animation: slideInRight 1s ease-out 0.5s forwards;
+            opacity: 0;
         }
 
-        .flower {
-            width: 150px;
-            height: 150px;
-            background-color: #4CAF50;
-            border-radius: 50%;
+        .custom-image {
+            width: 80%;
+            max-width: 500px;
             position: relative;
-            transform: rotate(45deg);
+            right: -20px;
+            transition: all 0.3s ease;
         }
 
-        .geometric {
-            position: absolute;
-            bottom: -50px;
-            right: -50px;
-            width: 200px;
-            height: 200px;
-            border: 2px solid #1a1a1a;
-            transform: rotate(-15deg);
+        .custom-image:hover {
+            transform: scale(1.05);
         }
 
         @media (max-width: 768px) {
@@ -138,40 +178,31 @@
                 margin-top: 3rem;
             }
 
-            .nav-links {
-                display: none;
+            .hero-content, .decoration {
+                animation: slideInLeft 1s ease-out 0.5s forwards;
             }
         }
     </style>
 </head>
+
 <body>
     <?php
-    // You can add PHP logic here, for example:
-    $pageTitle = "Human Stories & Ideas";
-    $subtitle = "A place to read, write, and deepen your understanding";
+    $pageTitle = "Welcome " . htmlspecialchars($user_name);
+    $subtitle = "Start your savings journey together now";
     $currentYear = date("Y");
     ?>
 
-    <header>
-      <?php include('includes/header2.php') ?>
-    </header>
-
     <main>
-        <div class="hero-content">
+        <div class="hero-content -mt-80">
             <h1><?php echo $pageTitle; ?></h1>
             <p class="subtitle"><?php echo $subtitle; ?></p>
-            <a href="#start" class="cta-button">Start reading</a>
+            <a href="/test_project/groups.php" class="cta-button">Start</a>
         </div>
-        <div class="decoration">
-            <div class="flower"></div>
-            <div class="geometric"></div>
+        <div class="decoration -mt-80">
+            <img src="land.png" alt="Land Image" class="custom-image">
         </div>
     </main>
-
-    <footer>
-        <p>&copy; <?php echo $currentYear; ?> Human Stories & Ideas. All rights reserved.</p>
-    </footer>
 </body>
 </html>
-
+<?php include 'includes/new_footer.php'; ?>
 

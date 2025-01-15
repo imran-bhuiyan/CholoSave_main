@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -5,74 +6,167 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: /test_project/login.php");
     exit();
 }
-include 'includes/header2.php'; 
 
+include 'includes/header2.php';
 
+// Add database connection
+require_once 'db.php'; // Make sure this file exists with your database credentials
+
+// Fetch user name from database
+$user_id = $_SESSION['user_id'];
+$sql = "SELECT name FROM users WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    $user = $result->fetch_assoc();
+    $user_name = $user['name'];
+} else {
+    $user_name = "User"; // Default fallback
+}
+
+$stmt->close();
 ?>
 
+<!DOCTYPE html>
+<html lang="en">
 
-<main class="bg-gray-100 min-h-screen">
-    <div class="max-w-7xl mx-auto p-6">
-        <!-- Display User ID in the Corner -->
-        <?php
-        if (isset($_SESSION['user_id'])) {
-            $user_id = $_SESSION['user_id'];
-            echo '<div class="absolute top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-full shadow-md">';
-            echo 'User ID: ' . $user_id;
-            echo '</div>';
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cholosave</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', system-ui, -apple-system, sans-serif;
         }
-        ?>
 
-        <!-- Hero Section -->
-        <section class="text-center">
-            <h1 class="text-4xl font-bold text-blue-600">Welcome to CholoSave!</h1>
-            <p class="mt-4 text-lg text-gray-600">Your financial journey starts here.</p>
-        </section>
+        body {
+            background-color: #fff;
+            min-height: 80vh;
+        }
 
-        <!-- Video Section -->
-        <section class="mt-12">
-            <h2 class="text-2xl font-semibold text-center">Watch This Video to Get Started</h2>
-            <div class="flex justify-center mt-6">
-                <!-- Replace with your video embed link -->
-                <iframe width="1903" height="748" src="https://www.youtube.com/embed/Gw9kMQMWZ88" 
-                    title="Group Savings - Taking Group Contributions To The Next Level" 
-                    frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-            </div>
-        </section>
+        main {
+            padding-top: 120px;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
 
-        <!-- Motivation Section -->
-        <section class="mt-16 bg-blue-50 py-12 rounded-lg shadow-md">
-            <div class="text-center max-w-2xl mx-auto">
-                <h2 class="text-3xl font-bold text-blue-600">Stay Motivated!</h2>
-                <p class="mt-6 text-xl text-gray-700">“The best way to predict the future is to create it.” – Abraham Lincoln</p>
-                <p class="mt-4 text-lg text-gray-600">Keep pushing, stay focused, and achieve your goals. You’ve got this!</p>
-            </div>
-        </section>
+        .hero-content {
+            max-width: 600px;
+        }
 
-        <!-- Documentation Section -->
-        <section class="mt-16">
-            <h2 class="text-2xl font-semibold text-center">Documentation</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-                <!-- Documentation Items -->
-                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition">
-                    <h3 class="text-lg font-semibold text-gray-800">Getting Started</h3>
-                    <p class="mt-2 text-gray-600">A guide to help you get started with using CholoSave.</p>
-                    <a href="/documentation/getting-started.php" class="mt-4 inline-block text-blue-600 hover:underline">Read More</a>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition">
-                    <h3 class="text-lg font-semibold text-gray-800">Managing Groups</h3>
-                    <p class="mt-2 text-gray-600">Learn how to create and manage groups for your savings.</p>
-                    <a href="/documentation/groups.php" class="mt-4 inline-block text-blue-600 hover:underline">Read More</a>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition">
-                    <h3 class="text-lg font-semibold text-gray-800">Saving & Investments</h3>
-                    <p class="mt-2 text-gray-600">Understand how to make contributions and investments in your group.</p>
-                    <a href="/documentation/savings-investments.php" class="mt-4 inline-block text-blue-600 hover:underline">Read More</a>
-                </div>
-            </div>
-        </section>
-    </div>
-</main>
+        h1 {
+            font-size: 3rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
 
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 0.7rem 2rem;
+            background-color: rgb(0, 63, 238);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background-color: #333;
+        }
+
+        .decoration {
+            position: relative;
+        }
+
+        .custom-image {
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+            right: -20px;
+            transition: all 0.3s ease;
+        }
+
+        .custom-image:hover {
+            transform: scale(1.05);
+        }
+
+        .flower {
+            width: 150px;
+            height: 150px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            position: relative;
+            transform: rotate(45deg);
+        }
+
+        .geometric {
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            border: 2px solid #1a1a1a;
+            transform: rotate(-15deg);
+        }
+
+        @media (max-width: 768px) {
+            main {
+                flex-direction: column;
+                text-align: center;
+                padding-top: 100px;
+            }
+
+            h1 {
+                font-size: 3rem;
+            }
+
+            .decoration {
+                margin-top: 3rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <?php
+    $pageTitle = "Welcome " . htmlspecialchars($user_name);
+    $subtitle = "Start your savings journey together now";
+    $currentYear = date("Y");
+    ?>
+
+    <main>
+        <div class="hero-content -mt-80">
+            <h1><?php echo $pageTitle; ?></h1>
+            <p class="subtitle"><?php echo $subtitle; ?></p>
+            <a href="/test_project/groups.php" class="cta-button">Start</a>
+        </div>
+        <div class="decoration -mt-80">
+            <img src="land.png" alt="Land Image" class="custom-image">
+        </div>
+    </main>
+
+</body>
+
+</html>
 <?php include 'includes/new_footer.php'; ?>

@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $success_message = "Login successful. Redirecting...";
 
         // Redirect to dashboard after successful login
-        header('Location: /test_project/portfolio.php');
+        header('Location: /test_project/user_landing_page.php');
         exit();
 
     } catch (Exception $e) {
