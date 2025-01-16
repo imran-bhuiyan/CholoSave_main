@@ -114,8 +114,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <button id="menu-button" class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 absolute left-2">
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
-                    <h1 class="text-5xl font-semibold custom-font">
-                        <i class="fa-solid fa-money-bill-wave mr-3"></i>
+                    <h1 class="text-2xl font-semibold custom-font">
+                        <i class="fa-solid fa-money-bill-wave mr-3 text-blue-500"></i>
                         Withdrawal Request
                     </h1>
                 </div>
@@ -124,11 +124,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="flex-1 overflow-y-auto p-6 w-full max-w-4xl mx-auto">
                 <div class="bg-white rounded-lg shadow-lg p-8">
                     <div class="mb-8 text-center">
-                        <h2 class="text-2xl font-semibold custom-font text-gray-800">
-                            <i class="fas fa-wallet mr-2"></i>
-                            Withdrawal Request Form
-                        </h2>
-                        <p class="text-gray-600 mt-2">Please fill in the details below to request a withdrawal</p>
+                    <h2 class="text-1xl font-semibold custom-font text-red-800">
+                                <i class="fa-solid fa-file-signature mr-2"></i>
+                                Please fill in the details below to submit your wihdrawal request.
+                            </h2>
                     </div>
 
                     <form method="POST" class="space-y-6">
@@ -174,34 +173,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script>
 
 // Dark mode functionality
-let isDarkMode = localStorage.getItem('darkMode') === 'true';
-const body = document.body;
-const themeToggle = document.getElementById('theme-toggle');
-const themeIcon = themeToggle.querySelector('i');
-const themeText = themeToggle.querySelector('span');
+// let isDarkMode = localStorage.getItem('darkMode') === 'true';
+// const body = document.body;
+// const themeToggle = document.getElementById('theme-toggle');
+// const themeIcon = themeToggle.querySelector('i');
+// const themeText = themeToggle.querySelector('span');
 
-function updateTheme() {
-    if (isDarkMode) {
-        body.classList.add('dark-mode');
-        themeIcon.classList.remove('fa-moon');
-        themeIcon.classList.add('fa-sun');
-        themeText.textContent = 'Light Mode';
-    } else {
-        body.classList.remove('dark-mode');
-        themeIcon.classList.remove('fa-sun');
-        themeIcon.classList.add('fa-moon');
-        themeText.textContent = 'Dark Mode';
-    }
-}
+// function updateTheme() {
+//     if (isDarkMode) {
+//         body.classList.add('dark-mode');
+//         themeIcon.classList.remove('fa-moon');
+//         themeIcon.classList.add('fa-sun');
+//         themeText.textContent = 'Light Mode';
+//     } else {
+//         body.classList.remove('dark-mode');
+//         themeIcon.classList.remove('fa-sun');
+//         themeIcon.classList.add('fa-moon');
+//         themeText.textContent = 'Dark Mode';
+//     }
+// }
 
-// Initialize theme
-updateTheme();
+// // Initialize theme
+// updateTheme();
 
-themeToggle.addEventListener('click', () => {
-    isDarkMode = !isDarkMode;
-    localStorage.setItem('darkMode', isDarkMode);
-    updateTheme();
-});
+// themeToggle.addEventListener('click', () => {
+//     isDarkMode = !isDarkMode;
+//     localStorage.setItem('darkMode', isDarkMode);
+//     updateTheme();
+// });
 
 
 window.addEventListener('resize', handleResize);
@@ -220,3 +219,4 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 </body>
 
 </html>
+<?php include 'new_footer.php'; ?>

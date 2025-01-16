@@ -180,35 +180,35 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
             }
         });
 
-        // Dark mode functionality
-        let isDarkMode = localStorage.getItem('darkMode') === 'true';
-        const body = document.body;
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = themeToggle.querySelector('i');
-        const themeText = themeToggle.querySelector('span');
+        // // Dark mode functionality
+        // let isDarkMode = localStorage.getItem('darkMode') === 'true';
+        // const body = document.body;
+        // const themeToggle = document.getElementById('theme-toggle');
+        // const themeIcon = themeToggle.querySelector('i');
+        // const themeText = themeToggle.querySelector('span');
 
-        function updateTheme() {
-            if (isDarkMode) {
-                body.classList.add('dark-mode');
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-                themeText.textContent = 'Light Mode';
-            } else {
-                body.classList.remove('dark-mode');
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-                themeText.textContent = 'Dark Mode';
-            }
-        }
+        // function updateTheme() {
+        //     if (isDarkMode) {
+        //         body.classList.add('dark-mode');
+        //         themeIcon.classList.remove('fa-moon');
+        //         themeIcon.classList.add('fa-sun');
+        //         themeText.textContent = 'Light Mode';
+        //     } else {
+        //         body.classList.remove('dark-mode');
+        //         themeIcon.classList.remove('fa-sun');
+        //         themeIcon.classList.add('fa-moon');
+        //         themeText.textContent = 'Dark Mode';
+        //     }
+        // }
 
-        // Initialize theme
-        updateTheme();
+        // // Initialize theme
+        // updateTheme();
 
-        themeToggle.addEventListener('click', () => {
-            isDarkMode = !isDarkMode;
-            localStorage.setItem('darkMode', isDarkMode);
-            updateTheme();
-        });
+        // themeToggle.addEventListener('click', () => {
+        //     isDarkMode = !isDarkMode;
+        //     localStorage.setItem('darkMode', isDarkMode);
+        //     updateTheme();
+        // });
 
 
         window.addEventListener('resize', handleResize);
@@ -227,3 +227,5 @@ if ($stmt = $conn->prepare($paymentHistoryQuery)) {
 </body>
 
 </html>
+
+<?php include 'new_footer.php'; ?>

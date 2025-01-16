@@ -12,7 +12,7 @@
 
         /* Main wrapper to create sticky footer */
         .wrapper {
-            min-height: 50%;
+            min-height: 20%;
             display: flex;
             flex-direction: column;
         }
@@ -87,12 +87,10 @@
             <nav class="footer-nav">
                 <ul class="footer-links">
                     <li><a href="#" class="footer-link">Help</a></li>
-                    <li><a href="/test_project/portfolio.php" class="footer-link">Dashboard</a></li>
-                    <li><a href="/test_project/groups.php" class="footer-link">Groups</a></li>
-                    <li><a href="/test_project/notification.php" class="footer-link">Notifications</a></li>
-                    <li><a href="/test_project/forum.php" class="footer-link">Forum</a></li>
-                    <li><a href="#" class="footer-link">Blog</a></li>
-                    <li><a href="#" class="footer-link">Terms</a></li>
+                    <li><a href="/test_project/group_member/group_member_dashboard.php" class="footer-link">Dashboard</a></li>
+                    <li><a href="/test_project/group_member/group_member_list.php" class="footer-link">Members</a></li>
+                    <li><a href="/test_project/group_member/group_member_loan_history.php" class="footer-link">Loans</a></li>
+                    <li><a href="/test_project/group_member/group_member_withdraw_request.php" class="footer-link">Withdrawal</a></li>
                     <li><a href="#" class="footer-link">AI Tips</a></li>
                 </ul>
             </nav>

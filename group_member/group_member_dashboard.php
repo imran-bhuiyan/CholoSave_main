@@ -97,14 +97,14 @@ $emergency_fund = fetchSingleValue($conn, $emergency_query, $group_id);
                         Dashboard
                     </h1>
                 </div>
-                <div class="flex items-center space-x-4">
+                <!-- <div class="flex items-center space-x-4">
                     <button class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
                         <i class="fas fa-bell"></i>
                     </button>
                     <button class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
                         <i class="fas fa-user-circle"></i>
                     </button>
-                </div>
+                </div> -->
             </header>
 
             <!-- Main Content Area -->
@@ -213,35 +213,35 @@ $emergency_fund = fetchSingleValue($conn, $emergency_query, $group_id);
 
 
 
-        // Dark mode functionality
-        let isDarkMode = localStorage.getItem('darkMode') === 'true';
-        const body = document.body;
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = themeToggle.querySelector('i');
-        const themeText = themeToggle.querySelector('span');
+        // // Dark mode functionality
+        // let isDarkMode = localStorage.getItem('darkMode') === 'true';
+        // const body = document.body;
+        // const themeToggle = document.getElementById('theme-toggle');
+        // const themeIcon = themeToggle.querySelector('i');
+        // const themeText = themeToggle.querySelector('span');
 
-        function updateTheme() {
-            if (isDarkMode) {
-                body.classList.add('dark-mode');
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-                themeText.textContent = 'Light Mode';
-            } else {
-                body.classList.remove('dark-mode');
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-                themeText.textContent = 'Dark Mode';
-            }
-        }
+        // function updateTheme() {
+        //     if (isDarkMode) {
+        //         body.classList.add('dark-mode');
+        //         themeIcon.classList.remove('fa-moon');
+        //         themeIcon.classList.add('fa-sun');
+        //         themeText.textContent = 'Light Mode';
+        //     } else {
+        //         body.classList.remove('dark-mode');
+        //         themeIcon.classList.remove('fa-sun');
+        //         themeIcon.classList.add('fa-moon');
+        //         themeText.textContent = 'Dark Mode';
+        //     }
+        // }
 
-        // Initialize theme
-        updateTheme();
+        // // Initialize theme
+        // updateTheme();
 
-        themeToggle.addEventListener('click', () => {
-            isDarkMode = !isDarkMode;
-            localStorage.setItem('darkMode', isDarkMode);
-            updateTheme();
-        });
+        // themeToggle.addEventListener('click', () => {
+        //     isDarkMode = !isDarkMode;
+        //     localStorage.setItem('darkMode', isDarkMode);
+        //     updateTheme();
+        // });
 
 
         window.addEventListener('resize', handleResize);
@@ -260,3 +260,5 @@ $emergency_fund = fetchSingleValue($conn, $emergency_query, $group_id);
 </body>
 
 </html>
+
+<?php include 'new_footer.php'; ?>

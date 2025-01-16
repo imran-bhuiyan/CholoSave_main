@@ -16,7 +16,6 @@ if (!isset($conn)) {
     include 'db.php';
 }
 
-
 // Check if the user is an admin for the group
 $is_admin = false;
 $checkAdminQuery = "SELECT group_admin_id FROM my_group WHERE group_id = ?";
@@ -38,7 +37,6 @@ if (!$is_admin) {
     header("Location: /test_project/error_page.php");
     exit;
 }
-
 
 $leaveRequestsQuery = "
   SELECT 
@@ -69,7 +67,6 @@ GROUP BY
     gm.user_id, gm.group_id, gm.leave_request, gm.join_date, gm.time_period_remaining, u.name;
 ";
 
-
 $leaveRequests = [];
 if ($stmt = $conn->prepare($leaveRequestsQuery)) {
     $stmt->bind_param('i', $group_id);
@@ -86,20 +83,110 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
 
     if ($action == 'approve') {
-        $updateQuery = "UPDATE group_membership SET leave_request = 'approved', status = 'declined', join_date = NULL, join_request_date = NULL, time_period_remaining = NULL 
-                        WHERE user_id = ? AND group_id = ?;";
-    } elseif ($action == 'reject') {
-        $updateQuery = "UPDATE group_membership SET leave_request = 'no' WHERE user_id = ? AND group_id = ?";
-    }
+        // Start transaction
+        $conn->begin_transaction();
 
-    if ($stmt = $conn->prepare($updateQuery)) {
-        $stmt->bind_param('ii', $user_id_to_update, $group_id);
-        if ($stmt->execute()) {
+        try {
+            // Get user and group information for notifications
+            $getUserInfo = "SELECT u.name, mg.group_name 
+                          FROM users u 
+                          JOIN my_group mg ON mg.group_id = ? 
+                          WHERE u.id = ?";
+            $stmt = $conn->prepare($getUserInfo);
+            $stmt->bind_param('ii', $group_id, $user_id_to_update);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $info = $result->fetch_assoc();
+            $username = $info['name'];
+            $groupname = $info['group_name'];
+            $stmt->close();
+
+            // 1. Delete from group_membership
+            $deleteGroupMembership = "DELETE FROM group_membership WHERE user_id = ? AND group_id = ?";
+            $stmt = $conn->prepare($deleteGroupMembership);
+            $stmt->bind_param('ii', $user_id_to_update, $group_id);
+            $stmt->execute();
+            $stmt->close();
+
+            // 2. Delete from savings
+            $deleteSavings = "DELETE FROM savings WHERE user_id = ? AND group_id = ?";
+            $stmt = $conn->prepare($deleteSavings);
+            $stmt->bind_param('ii', $user_id_to_update, $group_id);
+            $stmt->execute();
+            $stmt->close();
+
+            // 3. Delete from loan_requests
+            $deleteLoanRequests = "DELETE FROM loan_request WHERE user_id = ? AND group_id = ?";
+            $stmt = $conn->prepare($deleteLoanRequests);
+            $stmt->bind_param('ii', $user_id_to_update, $group_id);
+            $stmt->execute();
+            $stmt->close();
+
+            // 4. Delete from transaction_info
+            $deleteTransactions = "DELETE FROM transaction_info WHERE user_id = ? AND group_id = ?";
+            $stmt = $conn->prepare($deleteTransactions);
+            $stmt->bind_param('ii', $user_id_to_update, $group_id);
+            $stmt->execute();
+            $stmt->close();
+
+            // 5. Delete from withdrawal
+            $deleteWithdrawals = "DELETE FROM withdrawal WHERE user_id = ? AND group_id = ?";
+            $stmt = $conn->prepare($deleteWithdrawals);
+            $stmt->bind_param('ii', $user_id_to_update, $group_id);
+            $stmt->execute();
+            $stmt->close();
+
+            // 6. Create notification for user
+            $userNotificationTitle = "Leave Request Approved";
+            $userNotificationMessage = "Your request to leave the group '$groupname' has been approved.";
+            $insertUserNotification = "INSERT INTO notifications (target_user_id, type, title, message) 
+                                    VALUES (?, 'leave_request', ?, ?)";
+            $stmt = $conn->prepare($insertUserNotification);
+            $stmt->bind_param('iss', $user_id_to_update, $userNotificationTitle, $userNotificationMessage);
+            $stmt->execute();
+            $stmt->close();
+
+            // 7. Create notification for group
+            $groupNotificationTitle = "Member Left Group";
+            $groupNotificationMessage = "Member '$username' has left the group.";
+            $insertGroupNotification = "INSERT INTO notifications (target_group_id, type, title, message) 
+                                     VALUES (?, 'leave_request', ?, ?)";
+            $stmt = $conn->prepare($insertGroupNotification);
+            $stmt->bind_param('iss', $group_id, $groupNotificationTitle, $groupNotificationMessage);
+            $stmt->execute();
+            $stmt->close();
+
+            // If all operations are successful, commit the transaction
+            $conn->commit();
+
+            // Redirect with success message
             echo "<script>
-                    window.location.href = 'member_leave_request.php'; // Redirect to the leave request page
+                    alert('Member removed successfully');
+                    window.location.href = 'member_leave_request.php';
+                  </script>";
+
+        } catch (Exception $e) {
+            // If any operation fails, rollback all changes
+            $conn->rollback();
+            
+            // Redirect with error message
+            echo "<script>
+                    alert('Error processing leave request. Please try again.');
+                    window.location.href = 'member_leave_request.php';
                   </script>";
         }
-        $stmt->close();
+    } elseif ($action == 'reject') {
+        $updateQuery = "UPDATE group_membership SET leave_request = 'no' WHERE user_id = ? AND group_id = ?";
+        if ($stmt = $conn->prepare($updateQuery)) {
+            $stmt->bind_param('ii', $user_id_to_update, $group_id);
+            if ($stmt->execute()) {
+                echo "<script>
+                        alert('Leave request rejected');
+                        window.location.href = 'member_leave_request.php';
+                      </script>";
+            }
+            $stmt->close();
+        }
     }
 }
 ?>

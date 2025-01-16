@@ -93,7 +93,7 @@ if ($stmt = $conn->prepare($withdrawalQuery)) {
                             <i class="fa-solid fa-bars text-xl"></i>
                         </button>
                         <h1 class="text-2xl font-semibold text-gray-800 ml-96">
-                            <i class="fa-solid fa-money-bill-transfer mr-2 text-blue-600"></i>
+                            <i class="fa-solid fa-file-invoice-dollar mr-2 text-blue-600"></i>
                             Withdrawal History
                         </h1>
                     </div>
@@ -196,3 +196,5 @@ if ($stmt = $conn->prepare($withdrawalQuery)) {
     </script>
 </body>
 </html>
+
+<?php include 'new_footer.php'; ?>

@@ -1,11 +1,18 @@
+<!-- Fullscreen Loader -->
+<div id="fullscreen-loader" class="fixed inset-0 bg-white z-50 flex items-center justify-center hidden transition-opacity duration-300">
+    <div class="text-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-green-500 mb-4"></div>
+        <p class="text-xl text-gray-600">Generating Report...</p>
+    </div>
+</div>
+
 <!-- Enhanced Sidebar -->
 <div id="sidebar" class="hidden md:flex flex-col w-64 bg-white shadow-lg transition-all duration-300 ease-in-out">
     <!-- Logo Section -->
     <div class="p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
         <div class="flex items-center space-x-2 cursor-pointer">
             <i class="fas fa-leaf text-white-500 transform hover:scale-110 transition-transform"></i>
-            <span
-                class="text-xl font-semibold bg-gradient-to-r from-green-500 to-blue-700 bg-clip-text text-transparent">CholoSave</span>
+            <span class="text-xl font-semibold bg-gradient-to-r from-green-500 to-blue-700 bg-clip-text text-transparent">CholoSave</span>
         </div>
     </div>
 
@@ -33,7 +40,6 @@
                     id="unreadCount">0</span>
             </a>
 
-            <!-- Repeat pattern for other menu items -->
             <a href="/test_project/group_member/group_member_list.php"
                 class="sidebar-item group flex items-center p-3 text-gray-600 rounded-lg hover:bg-white-50 transition-all duration-200">
                 <i class="fas fa-users w-6 text-white-600 group-hover:scale-110 transition-transform"></i>
@@ -88,8 +94,7 @@
                 <span class="ml-2 group-hover:translate-x-1 transition-transform">Investment Details</span>
             </a>
 
-            
-            <a href="/test_project/group_member/group_generate_report.php"
+            <a href="/test_project/group_member/group_generate_report.php" id="generateReportLink"
                 class="sidebar-item group flex items-center p-3 text-gray-600 rounded-lg hover:bg-white-50 transition-all duration-200">
                 <i class="fa-solid fa-file-lines w-6 text-white-600 group-hover:scale-110 transition-transform"></i>
                 <span class="ml-2 group-hover:translate-x-1 transition-transform">Generate Report</span>
@@ -165,6 +170,25 @@
     .sidebar-item:hover i {
         color: #059669;
     }
+
+    /* Loading screen animations */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.3s ease-in forwards;
+    }
+    
+    .fade-out {
+        animation: fadeOut 0.3s ease-out forwards;
+    }
 </style>
 
 <script>
@@ -206,6 +230,26 @@
             historyChevron.style.transform = historySubmenu.classList.contains('hidden')
                 ? 'rotate(0deg)'
                 : 'rotate(180deg)';
+        });
+
+        // Generate Report loading screen
+        const generateReportLink = document.getElementById('generateReportLink');
+        const fullscreenLoader = document.getElementById('fullscreen-loader');
+        
+        generateReportLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Show loader
+            fullscreenLoader.classList.remove('hidden');
+            fullscreenLoader.classList.add('fade-in');
+            
+            // Wait 3 seconds then proceed to the report page
+            setTimeout(() => {
+                fullscreenLoader.classList.add('fade-out');
+                setTimeout(() => {
+                    window.location.href = this.href;
+                }, 300);
+            }, 3000);
         });
 
         // Enhanced leave request functionality
@@ -280,8 +324,7 @@
                 .then(data => {
                     const unreadCount = document.getElementById('unreadCount');
                     if (data.count > 0) {
-                        unreadCount.textContent = data.count;
-                        unreadCount.classList.remove('hidden');
+                        unreadCount.textContent = data.count;unreadCount.classList.remove('hidden');
                     } else {
                         unreadCount.classList.add('hidden');
                     }
@@ -291,5 +334,24 @@
         // Check for unread messages every 30 seconds
         setInterval(checkUnreadMessages, 30000);
         checkUnreadMessages(); // Initial check
+
+        // Add loading behavior for dark mode
+        const updateLoaderTheme = () => {
+            if (isDarkMode) {
+                fullscreenLoader.classList.add('dark-mode');
+                fullscreenLoader.querySelector('p').classList.add('text-gray-300');
+                fullscreenLoader.querySelector('.animate-spin').classList.add('border-green-400');
+            } else {
+                fullscreenLoader.classList.remove('dark-mode');
+                fullscreenLoader.querySelector('p').classList.remove('text-gray-300');
+                fullscreenLoader.querySelector('.animate-spin').classList.remove('border-green-400');
+            }
+        };
+
+        // Update loader theme when dark mode changes
+        themeToggle.addEventListener('click', updateLoaderTheme);
+        
+        // Initial loader theme setup
+        updateLoaderTheme();
     });
 </script>

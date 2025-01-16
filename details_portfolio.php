@@ -122,7 +122,7 @@ try {
                 </div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">No Group Data Available</h2>
                 <p class="text-gray-600 mb-6">You are currently not a member of any groups or there is no activity to display.</p>
-                <a href="join_group.php" class="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                <a href="/test_project/groups.php" class="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
                     Join a Group
                 </a>
             </div>

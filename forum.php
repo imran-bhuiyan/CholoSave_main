@@ -203,3 +203,5 @@ while ($row = mysqli_fetch_assoc($questions_result)) {
 </body>
 
 </html>
+
+<?php include 'includes/new_footer.php'; ?>

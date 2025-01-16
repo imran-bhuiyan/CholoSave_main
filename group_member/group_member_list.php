@@ -189,3 +189,5 @@ if ($stmt = $conn->prepare($memberQuery)) {
     </script>
 </body>
 </html>
+
+<?php include 'new_footer.php'; ?>
