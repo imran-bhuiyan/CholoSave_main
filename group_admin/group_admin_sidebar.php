@@ -211,65 +211,64 @@
     </div>
 
     <script>
-        function toggleSubMenu(menuId) {
-            const menu = document.getElementById(menuId);
-            menu.classList.toggle('hidden');
-        }
+    function toggleSubMenu(menuId) {
+        const menu = document.getElementById(menuId);
+        menu.classList.toggle('hidden');
+    }
 
-        // Add the event listener for the leave request button
-        document.getElementById('leaveRequestBtn').addEventListener('click', function (e) {
-            e.preventDefault(); // Prevent the default anchor behavior
+    // SweetAlert for Leave Request Button
+    document.getElementById('leaveRequestBtn').addEventListener('click', function (e) {
+        e.preventDefault(); // Prevent default anchor behavior
 
-            Swal.fire({
-                title: 'Leave Group',
-                text: 'Are you sure you want to leave this group?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, leave group',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Send leave request to server
-                    fetch('process_admin_leave_request.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.status === 'success') {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Request Submitted',
-                                    text: data.message,
-                                    showConfirmButton: true
-                                });
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: data.message,
-                                    showConfirmButton: true
-                                });
-                            }
-                        })
-                        .catch(error => {
+        Swal.fire({
+            title: 'Leave Group',
+            text: 'Are you sure you want to leave this group?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, leave group',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Send leave request to the server
+                fetch('/test_project/group_admin/process_admin_leave_request.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Request Submitted',
+                                text: data.message,
+                                showConfirmButton: true
+                            });
+                        } else {
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
-                                text: 'There was an error processing your request. Please try again.',
+                                text: data.message,
                                 showConfirmButton: true
                             });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'There was an error processing your request. Please try again.',
+                            showConfirmButton: true
                         });
-                }
-            });
+                    });
+            }
         });
+    });
+</script>
 
-
-    </script>
 </body>
 
 </html>

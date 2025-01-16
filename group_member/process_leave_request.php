@@ -16,6 +16,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $group_id = $_SESSION['group_id'];
     $user_id = $_SESSION['user_id'];
     
+    // First check for approved loans
+    $loan_query = "SELECT status FROM loan_request 
+                  WHERE user_id = ? AND group_id = ? 
+                  AND status = 'approved'";
+    $loan_stmt = $conn->prepare($loan_query);
+    $loan_stmt->bind_param("ii", $user_id, $group_id);
+    $loan_stmt->execute();
+    $loan_result = $loan_stmt->get_result();
+    
+    if ($loan_result->num_rows > 0) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'You cannot leave the group while you have outstanding loans. Please clear all loans before requesting to leave.'
+        ]);
+        $loan_stmt->close();
+        exit;
+    }
+    $loan_stmt->close();
+    
     // Check if user already has a pending leave request
     $check_query = "SELECT leave_request FROM group_membership 
                    WHERE group_id = ? AND user_id = ?";

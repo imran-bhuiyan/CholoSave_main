@@ -18,33 +18,29 @@ if (!isset($conn)) {
 
 // Check if the user is an admin for the group
 $is_admin = false;
-$checkAdminQuery = "SELECT group_admin_id FROM my_group WHERE group_id = ?";
+$checkAdminQuery = "SELECT group_admin_id, group_name FROM my_group WHERE group_id = ?";
 if ($stmt = $conn->prepare($checkAdminQuery)) {
     $stmt->bind_param('i', $group_id);
     $stmt->execute();
-    $stmt->bind_result($group_admin_id);
+    $stmt->bind_result($group_admin_id, $group_name);
     $stmt->fetch();
     $stmt->close();
     
-    // If the user is the admin of the group, proceed; otherwise, redirect to an error page
     if ($group_admin_id === $user_id) {
         $is_admin = true;
     }
 }
 
 if (!$is_admin) {
-    // Redirect to error page if the user is not an admin
     header("Location: /test_project/error_page.php");
     exit;
 }
-
 
 $withdrawRequestsQuery = "
     SELECT 
         w.user_id, 
         w.group_id, 
         w.amount AS withdraw_amount,
-        w.payment_number,
         w.payment_method,
         w.payment_number,
         w.status,
@@ -77,35 +73,131 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
     $current_date = date('Y-m-d');
 
-    if ($action == 'approve') {
-        $updateQuery = "
-            UPDATE withdrawal 
-            SET status = 'approved', approve_date = ? 
-            WHERE user_id = ? AND group_id = ? AND status = 'pending'
-        ";
-        if ($stmt = $conn->prepare($updateQuery)) {
-            $stmt->bind_param('sii', $current_date, $user_id_to_update, $group_id);
-            if ($stmt->execute()) {
-                echo "<script>
-                        window.location.href = 'withdraw_requests_page.php';
-                      </script>";
+    // Fetch user and withdrawal details
+    $getUserDetailsQuery = "
+        SELECT 
+            u.name AS username, 
+            w.amount AS withdraw_amount 
+        FROM 
+            withdrawal w
+        LEFT JOIN 
+            users u ON w.user_id = u.id
+        WHERE 
+            w.user_id = ? AND w.group_id = ? AND w.status = 'pending'
+    ";
+    $username = "";
+    $withdraw_amount = 0;
+    if ($stmt = $conn->prepare($getUserDetailsQuery)) {
+        $stmt->bind_param('ii', $user_id_to_update, $group_id);
+        $stmt->execute();
+        $stmt->bind_result($username, $withdraw_amount);
+        $stmt->fetch();
+        $stmt->close();
+    }
+
+    // Start transaction
+    $conn->begin_transaction();
+
+    try {
+        if ($action == 'approve') {
+            $updateQuery = "
+                UPDATE withdrawal 
+                SET status = 'approved', approve_date = ? 
+                WHERE user_id = ? AND group_id = ? AND status = 'pending'
+            ";
+            if ($stmt = $conn->prepare($updateQuery)) {
+                $stmt->bind_param('sii', $current_date, $user_id_to_update, $group_id);
+                $stmt->execute();
+                $stmt->close();
             }
-            $stmt->close();
-        }
-    } elseif ($action == 'reject') {
-        $updateQuery = "UPDATE withdrawal SET status = 'declined' WHERE user_id = ? AND group_id = ? AND status = 'pending'";
-        if ($stmt = $conn->prepare($updateQuery)) {
-            $stmt->bind_param('ii', $user_id_to_update, $group_id);
-            if ($stmt->execute()) {
-                echo "<script>
-                        window.location.href = 'withdraw_requests_page.php';
-                      </script>";
+
+            // User notification for approval
+            $notificationTitleUser = "Withdrawal Approved";
+            $notificationMessageUser = "Hi $username, your withdrawal request of $$withdraw_amount for the group '$group_name' has been approved. Please check your payment method for updates.";
+            
+            $insertNotificationQuery = "
+                INSERT INTO notifications (
+                    target_user_id,
+                    target_group_id,
+                    type,
+                    title,
+                    message,
+                    status
+                ) VALUES (?, NULL, 'withdrawal', ?, ?, 'unread')
+            ";
+            if ($stmt = $conn->prepare($insertNotificationQuery)) {
+                $stmt->bind_param('iss', $user_id_to_update, $notificationTitleUser, $notificationMessageUser);
+                $stmt->execute();
+                $stmt->close();
             }
-            $stmt->close();
+
+            // Group notification for approval
+            $notificationTitleGroup = "Withdrawal Processed";
+            $notificationMessageGroup = "A withdrawal of $$withdraw_amount by user '$username' has been processed for the group '$group_name'.";
+            
+            $insertGroupNotificationQuery = "
+                INSERT INTO notifications (
+                    target_user_id,
+                    target_group_id,
+                    type,
+                    title,
+                    message,
+                    status
+                ) VALUES (NULL, ?, 'withdrawal', ?, ?, 'unread')
+            ";
+            if ($stmt = $conn->prepare($insertGroupNotificationQuery)) {
+                $stmt->bind_param('iss', $group_id, $notificationTitleGroup, $notificationMessageGroup);
+                $stmt->execute();
+                $stmt->close();
+            }
+
+        } elseif ($action == 'reject') {
+            $updateQuery = "UPDATE withdrawal SET status = 'declined' WHERE user_id = ? AND group_id = ? AND status = 'pending'";
+            if ($stmt = $conn->prepare($updateQuery)) {
+                $stmt->bind_param('ii', $user_id_to_update, $group_id);
+                $stmt->execute();
+                $stmt->close();
+            }
+
+            // User notification for rejection
+            $notificationTitleRejection = "Withdrawal Declined";
+            $notificationMessageRejection = "Hi $username, your withdrawal request of $$withdraw_amount for the group '$group_name' has been declined. Please contact the group admin for details.";
+            
+            $insertNotificationQuery = "
+                INSERT INTO notifications (
+                    target_user_id,
+                    target_group_id,
+                    type,
+                    title,
+                    message,
+                    status
+                ) VALUES (?, NULL, 'withdrawal', ?, ?, 'unread')
+            ";
+            if ($stmt = $conn->prepare($insertNotificationQuery)) {
+                $stmt->bind_param('iss', $user_id_to_update, $notificationTitleRejection, $notificationMessageRejection);
+                $stmt->execute();
+                $stmt->close();
+            }
         }
+
+        // Commit transaction
+        $conn->commit();
+
+        echo "<script>
+                window.location.href = 'member_withdraw_request.php';
+              </script>";
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $conn->rollback();
+        error_log("Error processing withdrawal request: " . $e->getMessage());
+        echo "<script>
+                alert('An error occurred. Please try again.');
+                window.location.href = 'member_withdraw_request.php';
+              </script>";
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

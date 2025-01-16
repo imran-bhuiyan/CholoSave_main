@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Clear loan_id from session after success
             unset($_SESSION['loan_id']);
-            header("Location: success_payment.php");
+            header("Location: loan_success_payment.php");
             exit;
         } catch (Exception $e) {
             // Rollback in case of error

@@ -24,14 +24,12 @@ if ($stmt = $conn->prepare($checkAdminQuery)) {
     $stmt->fetch();
     $stmt->close();
     
-    // If the user is the admin of the group, proceed; otherwise, redirect to an error page
     if ($group_admin_id === $user_id) {
         $is_admin = true;
     }
 }
 
 if (!$is_admin) {
-    // Redirect to error page if the user is not an admin
     header("Location: /test_project/error_page.php");
     exit;
 }
@@ -69,38 +67,60 @@ if ($stmt = $conn->prepare($membersQuery)) {
     $stmt->close();
 }
 
-// Update member role to admin or member
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['make_admin'])) {
-        $target_user_id = $_POST['user_id'];
+// Update member role to admin
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['make_admin'])) {
+    $target_user_id = $_POST['user_id'];
+    
+    // Start transaction
+    $conn->begin_transaction();
+    
+    try {
+        // Update my_group table to set new admin
+        $updateGroupAdminQuery = "UPDATE my_group SET group_admin_id = ? WHERE group_id = ?";
+        $stmt = $conn->prepare($updateGroupAdminQuery);
+        $stmt->bind_param('ii', $target_user_id, $group_id);
+        $stmt->execute();
+        $stmt->close();
         
-        // Update the group_membership table to make the selected user an admin
-        $updateRoleQuery = "UPDATE group_membership SET is_admin = 1 WHERE user_id = ? AND group_id = ?";
-        if ($stmt = $conn->prepare($updateRoleQuery)) {
-            $stmt->bind_param('ii', $target_user_id, $group_id);
-            if ($stmt->execute()) {
-                header("Location: group_members.php");  // Refresh the page after update
-                exit;
-            }
-            $stmt->close();
-        }
-    } elseif (isset($_POST['make_member'])) {
-        $target_user_id = $_POST['user_id'];
+        // Update group_membership for old admin (current user)
+        $updateOldAdminQuery = "UPDATE group_membership SET is_admin = 0 WHERE user_id = ? AND group_id = ?";
+        $stmt = $conn->prepare($updateOldAdminQuery);
+        $stmt->bind_param('ii', $user_id, $group_id);
+        $stmt->execute();
+        $stmt->close();
         
-        // Update the group_membership table to make the selected user a normal member
-        $updateRoleQuery = "UPDATE group_membership SET is_admin = 0 WHERE user_id = ? AND group_id = ?";
-        if ($stmt = $conn->prepare($updateRoleQuery)) {
-            $stmt->bind_param('ii', $target_user_id, $group_id);
-            if ($stmt->execute()) {
-                header("Location: group_members.php");  // Refresh the page after update
-                exit;
-            }
-            $stmt->close();
-        }
+        // Update group_membership for new admin
+        $updateNewAdminQuery = "UPDATE group_membership SET is_admin = 1 WHERE user_id = ? AND group_id = ?";
+        $stmt = $conn->prepare($updateNewAdminQuery);
+        $stmt->bind_param('ii', $target_user_id, $group_id);
+        $stmt->execute();
+        $stmt->close();
+        
+        // Create notification for new admin
+        $messageTitle = " Group Admin Promotion";
+        $message = "You have been promoted to admin of the group.";
+        $notificationQuery = "INSERT INTO notifications (target_user_id, target_group_id, message,title, type, created_at) VALUES (?, ?, ?,?, 'admin_promotion', NOW())";
+        $stmt = $conn->prepare($notificationQuery);
+        $stmt->bind_param('iiss', $target_user_id, $group_id, $message,$messageTitle);
+        $stmt->execute();
+        $stmt->close();
+        
+        // Commit transaction
+        $conn->commit();
+        
+        // Clear session and redirect to login
+        session_destroy();
+        echo json_encode(['success' => true]);
+        exit;
+        
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $conn->rollback();
+        echo json_encode(['success' => false, 'message' => 'An error occurred']);
+        exit;
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -111,6 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -196,25 +217,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                     <?php echo $member['role']; ?> </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     <?php echo $member['contribution']; ?> </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    <?php if ($member['role'] === 'Member'): ?>
-                                                        <form method="POST" class="inline-block">
-                                                            <input type="hidden" name="user_id" value="<?php echo $member['user_id']; ?>">
-                                                            <button type="submit" name="make_admin" value="make_admin"
-                                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
-                                                                <i class="fas fa-user-shield mr-2"></i> Make Admin
-                                                            </button>
-                                                        </form>
-                                                    <?php elseif ($member['role'] === 'Admin'): ?>
-                                                        <form method="POST" class="inline-block">
-                                                            <input type="hidden" name="user_id" value="<?php echo $member['user_id']; ?>">
-                                                            <button type="submit" name="make_member" value="make_member"
-                                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
-                                                                <i class="fas fa-user-minus mr-2"></i> Make Member
-                                                            </button>
-                                                        </form>
-                                                    <?php endif; ?>
-                                                </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+        <?php if ($member['role'] === 'Member'): ?>
+            <button onclick="confirmMakeAdmin(<?php echo $member['user_id']; ?>)"
+                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                <i class="fas fa-user-shield mr-2"></i> Make Admin
+            </button>
+        <?php endif; ?>
+    </td>
                                             </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($members)): ?>
@@ -235,6 +245,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         </div>
     </div>
+
+
+
+    <script>
+        function confirmMakeAdmin(userId) {
+            Swal.fire({
+                title: 'Make Member Admin?',
+                text: "You will be logged out and this member will become the new admin. This action cannot be undone!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, make admin!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('make_admin', true);
+                    formData.append('user_id', userId);
+
+                    fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire(
+                                'Admin Changed!',
+                                'You will be logged out now.',
+                                'success'
+                            ).then(() => {
+                                window.location.href = '/test_project/logout.php';
+                            });
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                'Something went wrong.',
+                                'error'
+                            );
+                        }
+                    });
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>

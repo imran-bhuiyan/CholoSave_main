@@ -95,9 +95,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 $stmt->close();
             }
 
-            // Create notification
-            $notificationTitle = "Join Request Approved";
-            $notificationMessage = "Your request to join the group '$group_name' has been approved. Welcome to the group!";
+//             // Ensure the record exists in my_savings
+// $ensureRecordQuery = "
+// INSERT IGNORE INTO my_savings (group_id, user_id, total_amount)
+// VALUES (?, ?, 0.00)
+// ";
+// if ($stmt = $conn->prepare($ensureRecordQuery)) {
+// $stmt->bind_param('ii', $group_id, $user_id_to_update);
+// $stmt->execute();
+// $stmt->close();
+// }
+             
+
+            // Create approval notification for the user
+            $notificationTitleUser = "Join Request Approved";
+            $notificationMessageUser = "Your request to join the group '$group_name' has been approved. Welcome to the group!";
             
             $insertNotificationQuery = "
                 INSERT INTO notifications (
@@ -107,24 +119,74 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     title,
                     message,
                     status
-                ) VALUES (?, ?, 'join_request', ?, ?, 'unread')
+                ) VALUES (?, NULL, 'join_request', ?, ?, 'unread')
             ";
             
             if ($stmt = $conn->prepare($insertNotificationQuery)) {
-                $stmt->bind_param('iiss', 
+                $stmt->bind_param('iss', 
                     $user_id_to_update,
+                    $notificationTitleUser,
+                    $notificationMessageUser
+                );
+                $stmt->execute();
+                $stmt->close();
+            }
+
+            // Create approval notification for the group
+            $notificationTitleGroup = "New Member Joined";
+            $notificationMessageGroup = "A new member has joined your group '$group_name'.";
+            
+            $insertGroupNotificationQuery = "
+                INSERT INTO notifications (
+                    target_user_id,
+                    target_group_id,
+                    type,
+                    title,
+                    message,
+                    status
+                ) VALUES (NULL, ?, 'join_request', ?, ?, 'unread')
+            ";
+            
+            if ($stmt = $conn->prepare($insertGroupNotificationQuery)) {
+                $stmt->bind_param('iss', 
                     $group_id,
-                    $notificationTitle,
-                    $notificationMessage
+                    $notificationTitleGroup,
+                    $notificationMessageGroup
                 );
                 $stmt->execute();
                 $stmt->close();
             }
 
         } elseif ($action == 'reject') {
+            // Update membership status
             $updateQuery = "UPDATE group_membership SET status = 'declined' WHERE user_id = ? AND group_id = ?";
             if ($stmt = $conn->prepare($updateQuery)) {
                 $stmt->bind_param('ii', $user_id_to_update, $group_id);
+                $stmt->execute();
+                $stmt->close();
+            }
+
+            // Create rejection notification for the user
+            $notificationTitleRejection = "Join Request Declined";
+            $notificationMessageRejection = "Your request to join the group '$group_name' has been declined.";
+            
+            $insertNotificationQuery = "
+                INSERT INTO notifications (
+                    target_user_id,
+                    target_group_id,
+                    type,
+                    title,
+                    message,
+                    status
+                ) VALUES (?, NULL, 'join_request', ?, ?, 'unread')
+            ";
+            
+            if ($stmt = $conn->prepare($insertNotificationQuery)) {
+                $stmt->bind_param('iss', 
+                    $user_id_to_update,
+                    $notificationTitleRejection,
+                    $notificationMessageRejection
+                );
                 $stmt->execute();
                 $stmt->close();
             }

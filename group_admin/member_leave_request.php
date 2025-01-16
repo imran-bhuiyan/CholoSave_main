@@ -48,11 +48,18 @@ $leaveRequestsQuery = "
     gm.join_date, 
     gm.time_period_remaining, 
     u.name AS username,
-    SUM(s.amount) AS total_contribution
+    SUM(s.amount) AS total_contribution,
+    (
+      SELECT COALESCE(SUM(w.amount), 0)
+      FROM withdrawal w
+      WHERE w.user_id = gm.user_id 
+      AND w.group_id = gm.group_id 
+      AND w.status = 'approved'
+    ) AS total_withdrawn
 FROM 
     group_membership gm
 LEFT JOIN 
-    savings s ON gm.user_id = s.user_id
+    savings s ON gm.user_id = s.user_id AND gm.group_id = s.group_id
 LEFT JOIN 
     users u ON gm.user_id = u.id
 WHERE 
@@ -60,8 +67,8 @@ WHERE
     AND gm.group_id = ? 
 GROUP BY 
     gm.user_id, gm.group_id, gm.leave_request, gm.join_date, gm.time_period_remaining, u.name;
-
 ";
+
 
 $leaveRequests = [];
 if ($stmt = $conn->prepare($leaveRequestsQuery)) {
@@ -82,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         $updateQuery = "UPDATE group_membership SET leave_request = 'approved', status = 'declined', join_date = NULL, join_request_date = NULL, time_period_remaining = NULL 
                         WHERE user_id = ? AND group_id = ?;";
     } elseif ($action == 'reject') {
-        $updateQuery = "UPDATE group_membership SET leave_request = 'declined' WHERE user_id = ? AND group_id = ?";
+        $updateQuery = "UPDATE group_membership SET leave_request = 'no' WHERE user_id = ? AND group_id = ?";
     }
 
     if ($stmt = $conn->prepare($updateQuery)) {
@@ -151,7 +158,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                                 <div class="text-sm font-medium text-gray-500">Pending Requests</div>
                                 <div class="mt-2 text-3xl font-semibold text-blue-600">
-                                    <?php echo count($leaveRequests); ?></div>
+                                    <?php echo count($leaveRequests); ?>
+                                </div>
                             </div>
                             <!-- Add more stats cards as needed -->
                         </div>
@@ -179,7 +187,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                                 Total Contribution</th>
                                             <th
                                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Actions</th>
+                                                Withdraw Amount
+                                            </th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Actions
+                                            </th>
+
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
@@ -189,7 +203,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                             ?>
                                             <tr class="hover:bg-gray-50 transition-colors duration-200">
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <?php echo $serial++; ?></td>
+                                                    <?php echo $serial++; ?>
+                                                </td>
 
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     <?php echo htmlspecialchars($request['username']); ?>
@@ -207,6 +222,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                                         ৳<?php echo number_format($request['total_contribution'], 2); ?>
                                                     </span>
                                                 </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="text-sm font-medium text-gray-900">
+                                                        ৳<?php echo number_format($request['total_withdrawn'], 2); ?>
+                                                    </span>
+                                                </td>
+
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <form method="POST" class="flex space-x-2">
                                                         <input type="hidden" name="user_id"

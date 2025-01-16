@@ -4,25 +4,19 @@ session_start();
 $group_id = $_SESSION['group_id'];
 $user_id = $_SESSION['user_id'];
 
-
 if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
     $group_id = $_SESSION['group_id'];
     $user_id = $_SESSION['user_id'];
    
-  echo'group_id'. $group_id; echo'user_id'. $user_id;
 }
 if (!isset($_SESSION['group_id']) || !isset($_SESSION['user_id'])) {
-    header("Location: /test_project/error_page.php"); // Redirect if session variables are missing
+    header("Location: /test_project/error_page.php");
     exit;
 }
-
-
 
 if (!isset($conn)) {
     include 'db.php'; // Ensure database connection
 }
-
-
 
 // Check if the user is an admin for the group
 $is_admin = false;
@@ -34,18 +28,15 @@ if ($stmt = $conn->prepare($checkAdminQuery)) {
     $stmt->fetch();
     $stmt->close();
     
-    // If the user is the admin of the group, proceed; otherwise, redirect to an error page
     if ($group_admin_id === $user_id) {
         $is_admin = true;
     }
 }
 
 if (!$is_admin) {
-    // Redirect to error page if the user is not an admin
     header("Location: /test_project/error_page.php");
     exit;
 }
-
 
 $errors = []; // To store validation errors
 
@@ -71,16 +62,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $errors['returnDate'] = 'Return date must be today or later.';
     }
 
+    // Check emergency fund sufficiency
+    $emergency_fund = 0;
+    $emergencyFundQuery = "SELECT emergency_fund FROM my_group WHERE group_id = ?";
+    if ($stmt = $conn->prepare($emergencyFundQuery)) {
+        $stmt->bind_param('i', $group_id);
+        $stmt->execute();
+        $stmt->bind_result($emergency_fund);
+        $stmt->fetch();
+        $stmt->close();
+
+        if ($amount > $emergency_fund) {
+            $errors['amount'] = 'Loan amount cannot exceed the group\'s emergency fund.';
+        }
+    } else {
+        $errors['emergencyFundQuery'] = 'Error fetching emergency fund.';
+    }
+
     // If no errors, proceed with database insertion
     if (empty($errors)) {
         // Check if the user already has an outstanding loan in the same group
-        $loanCheckQuery = "SELECT * FROM loan_request WHERE user_id = ? AND group_id = ? AND status IN ('pending', 'approved')"; 
-        
+        $loanCheckQuery = "SELECT * FROM loan_request WHERE user_id = ? AND group_id = ? AND status IN ('pending', 'approved')";
         if ($loanCheckStmt = $conn->prepare($loanCheckQuery)) {
             $loanCheckStmt->bind_param('ii', $user_id, $group_id);
             $loanCheckStmt->execute();
             $loanCheckStmt->store_result();
-            
+
             if ($loanCheckStmt->num_rows > 0) {
                 // Outstanding loan found, show SweetAlert
                 echo "<script>
@@ -127,6 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

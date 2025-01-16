@@ -13,7 +13,6 @@ if (!isset($conn)) {
     include 'db.php'; // Ensure database connection
 }
 
-
 // Check if the user is an admin for the group
 $is_admin = false;
 $checkAdminQuery = "SELECT group_admin_id FROM my_group WHERE group_id = ?";
@@ -36,7 +35,6 @@ if (!$is_admin) {
     exit;
 }
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['loan_id'], $_POST['action'])) {
     $loan_id = $_POST['loan_id'];
     $action = $_POST['action'];
@@ -53,20 +51,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['loan_id'], $_POST['ac
                 JOIN my_group mg ON lr.group_id = mg.group_id
                 WHERE lr.id = ? AND lr.group_id = ?
             ";
-            
+
             if ($stmt = $conn->prepare($getLoanDetailsQuery)) {
                 $stmt->bind_param('ii', $loan_id, $group_id);
                 $stmt->execute();
                 $result = $stmt->get_result();
                 $loanDetails = $result->fetch_assoc();
                 $stmt->close();
-                
+
                 if ($action === 'approved') {
                     // Check if emergency fund is sufficient
                     if ($loanDetails['emergency_fund'] < $loanDetails['amount']) {
                         throw new Exception("Insufficient emergency fund balance.");
                     }
-                    
+
                     // Update emergency fund
                     $newEmergencyFund = $loanDetails['emergency_fund'] - $loanDetails['amount'];
                     $updateEmergencyFundQuery = "
@@ -74,58 +72,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['loan_id'], $_POST['ac
                         SET emergency_fund = ? 
                         WHERE group_id = ?
                     ";
-                    
+
                     if ($stmt = $conn->prepare($updateEmergencyFundQuery)) {
                         $stmt->bind_param('di', $newEmergencyFund, $group_id);
                         $stmt->execute();
                         $stmt->close();
                     }
-                    
-                    // Create approval notification
+
+                    // Notification Handling for Approval
+                    // Create approval notification for the user
                     $notificationTitle = "Loan Request Approved";
                     $notificationMessage = "Your loan request for BDT {$loanDetails['amount']} in group '{$loanDetails['group_name']}' has been approved.";
-                    
-                    $insertNotificationQuery = "
+
+                    $insertUserNotificationQuery = "
                         INSERT INTO notifications (
                             target_user_id,
-                            target_group_id,
                             type,
                             title,
                             message,
                             status
-                        ) VALUES (?, ?, 'loan_approval', ?, ?, 'unread')
+                        ) VALUES (?, 'loan_approval', ?, ?, 'unread')
                     ";
-                    
-                    if ($stmt = $conn->prepare($insertNotificationQuery)) {
-                        $stmt->bind_param('iiss', 
+
+                    if ($stmt = $conn->prepare($insertUserNotificationQuery)) {
+                        $stmt->bind_param(
+                            'iss',
                             $loanDetails['user_id'],
-                            $group_id,
                             $notificationTitle,
                             $notificationMessage
                         );
                         $stmt->execute();
                         $stmt->close();
                     }
-                } else {
-                    // Create rejection notification
-                    $notificationTitle = "Loan Request Declined";
-                    $notificationMessage = "Your loan request for BDT {$loanDetails['amount']} in group '{$loanDetails['group_name']}' has been declined.";
-                    
-                    $insertNotificationQuery = "
+
+                    // Create approval notification for the group
+                    $groupNotificationTitle = "New Loan Approved";
+                    $groupNotificationMessage = "A loan request for BDT {$loanDetails['amount']} has been approved.";
+
+                    $insertGroupNotificationQuery = "
                         INSERT INTO notifications (
-                            target_user_id,
                             target_group_id,
                             type,
                             title,
                             message,
                             status
-                        ) VALUES (?, ?, 'loan_approval', ?, ?, 'unread')
+                        ) VALUES (?, 'loan_approval', ?, ?, 'unread')
                     ";
-                    
-                    if ($stmt = $conn->prepare($insertNotificationQuery)) {
-                        $stmt->bind_param('iiss', 
-                            $loanDetails['user_id'],
+
+                    if ($stmt = $conn->prepare($insertGroupNotificationQuery)) {
+                        $stmt->bind_param(
+                            'iss',
                             $group_id,
+                            $groupNotificationTitle,
+                            $groupNotificationMessage
+                        );
+                        $stmt->execute();
+                        $stmt->close();
+                    }
+                } else {
+                    // Notification Handling for Rejection
+                    // Create rejection notification for the user
+                    $notificationTitle = "Loan Request Declined";
+                    $notificationMessage = "Your loan request for BDT {$loanDetails['amount']} in group '{$loanDetails['group_name']}' has been declined.";
+
+                    $insertRejectionNotificationQuery = "
+                        INSERT INTO notifications (
+                            target_user_id,
+                            type,
+                            title,
+                            message,
+                            status
+                        ) VALUES (?, 'loan_approval', ?, ?, 'unread')
+                    ";
+
+                    if ($stmt = $conn->prepare($insertRejectionNotificationQuery)) {
+                        $stmt->bind_param(
+                            'iss',
+                            $loanDetails['user_id'],
                             $notificationTitle,
                             $notificationMessage
                         );
@@ -141,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['loan_id'], $_POST['ac
                 SET status = ?, approve_date = CURDATE() 
                 WHERE id = ? AND group_id = ?
             ";
-            
+
             if ($stmt = $conn->prepare($updateLoanStatusQuery)) {
                 $stmt->bind_param('sii', $action, $loan_id, $group_id);
                 $stmt->execute();
@@ -152,22 +175,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['loan_id'], $_POST['ac
         // Commit transaction
         $conn->commit();
         $message = "Loan request " . ($action === 'approved' ? 'approved' : 'declined') . " successfully.";
-        
-        // Show success message using SweetAlert
-        echo "<script>
-                Swal.fire({
-                    title: 'Success!',
-                    text: '$message',
-                    icon: 'success',
-                    confirmButtonText: 'OK'
-                });
-              </script>";
-              
     } catch (Exception $e) {
         // Rollback transaction on error
         $conn->rollback();
         $errorMessage = $e->getMessage();
-        
+
         // Show error message using SweetAlert
         echo "<script>
                 Swal.fire({
@@ -206,6 +218,7 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
     die("Error preparing loan history query.");
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
