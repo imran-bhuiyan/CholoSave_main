@@ -41,13 +41,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Start session and store user data
+        session_start();
         $_SESSION['user_id'] = $user['id'];
+        $_SESSION['role'] = $user['role']; // Assuming role column exists to differentiate between admin and users
 
-        // Set success message
-        $success_message = "Login successful. Redirecting...";
-
-        // Redirect to dashboard after successful login
-        header('Location: /test_project/user_landing_page.php');
+        // Redirect based on user role
+        if ($user['role'] === 'admin') {
+            // Redirect admin to the admin dashboard
+            header('Location: /test_project/admin/admin_dashboard.php');
+        } else {
+            // Redirect regular users to their landing page
+            header('Location: /test_project/user_landing_page.php');
+        }
         exit();
 
     } catch (Exception $e) {

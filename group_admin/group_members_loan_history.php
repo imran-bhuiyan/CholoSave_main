@@ -219,181 +219,178 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan Management</title>
+    <title>CholoSave Loan Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="group_admin_dashboard_style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        .custom-font {
-            font-family: 'Poppins', sans-serif;
+        body {
+            font-family: 'Inter', sans-serif;
         }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
+        .table-container {
+            scrollbar-width: thin;
+            scrollbar-color: #CBD5E0 #EDF2F7;
         }
-
-        .overflow-x-auto {
-            overflow-x: hidden;
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #EDF2F7;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background-color: #CBD5E0;
+            border-radius: 4px;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-
-<body class="bg-gray-100 dark-mode-transition">
+<body class="bg-gray-100">
     <div class="flex h-screen">
-        <!-- Sidebar -->
         <?php include 'group_admin_sidebar.php'; ?>
 
-        <!-- Main Content -->
-        <div class="flex-1 overflow-y-auto">
-            <!-- Page Header -->
-            <header class="flex items-center justify-between p-4 bg-white shadow dark-mode-transition">
+        <div class="flex-1 overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
                 <div class="flex items-center justify-center w-full">
-                    <button id="menu-button"
-                        class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 absolute left-2">
-                        <i class="fa-solid fa-bars text-xl"></i>
-                    </button>
-                    <h1 class="text-5xl font-semibold custom-font">
-                        <i class="fa-solid fa-file-invoice-dollar text-blue-600 mr-3"></i>
-                        Loan Management
-                    </h1>
+                    <div class="flex items-center">
+                        <button id="menu-button" class="md:hidden mr-4 text-gray-600 hover:text-gray-900">
+                            <i class="fa-solid fa-bars text-xl"></i>
+                        </button>
+                        <h1 class="text-2xl font-semibold text-gray-800">
+                            <i class="fa-solid fa-file-invoice-dollar mr-2 text-blue-600"></i>
+                            Loan Management
+                        </h1>
+                    </div>
                 </div>
             </header>
 
-            <div class="p-6 w-full max-w-full mx-auto mt-[50px]">
-                <div class="bg-white rounded-lg shadow-lg p-8">
-                    <!-- Filter Section -->
-                    <div class="mb-6">
-                        <form method="GET" action="">
-                            <label for="filter" class="block text-gray-700 font-medium mb-2">Filter by Status:</label>
-                            <select id="filter" name="filter" class="p-2 border border-gray-300 rounded-md">
-                                <option value="">All</option>
-                                <option value="pending" <?php echo isset($_GET['filter']) && $_GET['filter'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                                <option value="approved" <?php echo isset($_GET['filter']) && $_GET['filter'] === 'approved' ? 'selected' : ''; ?>>Approved</option>
-                                <option value="repaid" <?php echo isset($_GET['filter']) && $_GET['filter'] === 'repaid' ? 'selected' : ''; ?>>Repaid</option>
-                            </select>
-                            <button type="submit"
-                                class="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Apply</button>
-                        </form>
-                    </div>
+            <!-- Main Content -->
+            <main class="p-6 overflow-auto h-[calc(100vh-4rem)]">
+                <div class="max-w-7xl mx-auto animate-fade-in">
+                    <!-- Loan Management Table -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                                <h2 class="text-lg font-semibold text-gray-800 mb-4 md:mb-0">Loan Requests</h2>
+                                <form method="GET" action="" class="flex items-center space-x-4">
+                                    <select id="filter" name="filter" class="p-2 border border-gray-300 rounded-md text-sm">
+                                        <option value="">All Status</option>
+                                        <option value="pending" <?php echo isset($_GET['filter']) && $_GET['filter'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                                        <option value="approved" <?php echo isset($_GET['filter']) && $_GET['filter'] === 'approved' ? 'selected' : ''; ?>>Approved</option>
+                                        <option value="repaid" <?php echo isset($_GET['filter']) && $_GET['filter'] === 'repaid' ? 'selected' : ''; ?>>Repaid</option>
+                                    </select>
+                                    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors duration-200">
+                                        Apply Filter
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="table-container overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serial</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loan Amount (BDT)</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Group Contribution (BDT)</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approve Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <?php
+                                    $filter = isset($_GET['filter']) ? $_GET['filter'] : '';
+                                    $serial = 1;
+                                    if ($loanHistoryResult->num_rows > 0) {
+                                        while ($row = $loanHistoryResult->fetch_assoc()) {
+                                            if ($filter && $row['loan_status'] !== $filter) {
+                                                continue;
+                                            }
 
-                    <!-- Loan History Table -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full table-auto border-collapse bg-gray-50 rounded-lg">
-                            <thead>
-                                <tr class="bg-blue-100 border-b">
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
-                                        Serial</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
-                                        Name</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
-                                        Loan Amount (BDT)</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
-                                        Group Contribution (BDT)</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
-                                        Request Date</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
-                                        Due Date</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
-                                        Approve Date</th>
-                                    <th class="px-6 py-3 text-left text-gray-700 font-medium uppercase tracking-wider">
-                                        Status</th>
-                                    <th
-                                        class="px-6 py-3 text-center text-gray-700 font-medium uppercase tracking-wider">
-                                        Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                <?php
-                                $filter = isset($_GET['filter']) ? $_GET['filter'] : '';
-                                $serial = 1;
-                                if ($loanHistoryResult->num_rows > 0) {
-                                    while ($row = $loanHistoryResult->fetch_assoc()) {
-                                        if ($filter && $row['loan_status'] !== $filter) {
-                                            continue;
+                                            $statusClass = '';
+                                            switch($row['loan_status']) {
+                                                case 'approved':
+                                                    $statusClass = 'bg-green-100 text-green-800';
+                                                    break;
+                                                case 'pending':
+                                                    $statusClass = 'bg-yellow-100 text-yellow-800';
+                                                    break;
+                                                case 'repaid':
+                                                    $statusClass = 'bg-blue-100 text-blue-800';
+                                                    break;
+                                            }
+
+                                            echo "<tr class='hover:bg-gray-50 transition-colors duration-150'>";
+                                            echo "<td class='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>" . $serial++ . "</td>";
+                                            echo "<td class='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900'>" . htmlspecialchars($row['user_name']) . "</td>";
+                                            echo "<td class='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>" . number_format($row['loan_amount']) . "</td>";
+                                            echo "<td class='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>" . number_format($row['group_contribution']) . "</td>";
+                                            echo "<td class='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>" . date('M d, Y', strtotime($row['request_date'])) . "</td>";
+                                            echo "<td class='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>" . date('M d, Y', strtotime($row['due_date'])) . "</td>";
+                                            echo "<td class='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>" . ($row['approve_date'] ? date('M d, Y', strtotime($row['approve_date'])) : '-') . "</td>";
+                                            echo "<td class='px-6 py-4 whitespace-nowrap'>
+                                                    <span class='px-2 inline-flex text-xs leading-5 font-semibold rounded-full {$statusClass}'>
+                                                        " . ucfirst($row['loan_status']) . "
+                                                    </span>
+                                                  </td>";
+                                            
+                                            if ($row['loan_status'] === 'pending') {
+                                                echo "<td class='px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2'>
+                                                    <form action='' method='POST' class='inline-block'>
+                                                        <input type='hidden' name='loan_id' value='" . $row['loan_id'] . "'>
+                                                        <button type='submit' name='action' value='approved' class='bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200'>Approve</button>
+                                                        <button type='submit' name='action' value='declined' class='bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200'>Reject</button>
+                                                    </form>
+                                                </td>";
+                                            } else {
+                                                echo "<td class='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>N/A</td>";
+                                            }
+                                            echo "</tr>";
                                         }
-
-                                        $loanStatus = ($row['loan_status'] == 'repaid') ? 'Paid' : htmlspecialchars($row['loan_status'], ENT_QUOTES, 'UTF-8');
-
-                                        echo "<tr class='hover:bg-gray-100 transition'>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . $serial++ . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['user_name'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['loan_amount'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['group_contribution'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['request_date'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['due_date'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . htmlspecialchars($row['approve_date'], ENT_QUOTES, 'UTF-8') . "</td>";
-                                        echo "<td class='px-6 py-4 text-gray-800'>" . $loanStatus . "</td>";
-                                        if ($row['loan_status'] === 'pending') {
-                                            echo "<td class='px-6 py-4 text-center action-buttons'>
-                                                <form action='' method='POST'>
-                                                    <input type='hidden' name='loan_id' value='" . $row['loan_id'] . "'>
-                                                    <button type='submit' name='action' value='approved' class='inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200'>Approve</button>
-                                                </form>
-                                                <form action='' method='POST'>
-                                                    <input type='hidden' name='loan_id' value='" . $row['loan_id'] . "'>
-                                                    <button type='submit' name='action' value='declined' class='inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200'>Reject</button>
-                                                </form>
-                                            </td>";
-                                        } else {
-                                            echo "<td class='px-6 py-4 text-center text-gray-500'>N/A</td>";
-                                        }
-                                        echo "</tr>";
+                                    } else {
+                                        echo '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No loan history found</td></tr>';
                                     }
-                                } else {
-                                    echo "<tr><td colspan='9' class='px-6 py-4 text-center text-gray-600'>No loan history found.</td></tr>";
-                                }
-                                ?>
-                            </tbody>
-                        </table>
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     </div>
+
     <script>
-        // Dark mode functionality
-        let isDarkMode = localStorage.getItem('darkMode') === 'true';
-        const body = document.body;
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = themeToggle.querySelector('i');
-        const themeText = themeToggle.querySelector('span');
+        // Menu toggle for mobile
+        const menuButton = document.getElementById('menu-button');
+        const sidebar = document.querySelector('.sidebar');
 
-        function updateTheme() {
-            if (isDarkMode) {
-                body.classList.add('dark-mode');
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-                themeText.textContent = 'Light Mode';
-            } else {
-                body.classList.remove('dark-mode');
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-                themeText.textContent = 'Dark Mode';
-            }
-        }
-
-        // Initialize theme
-        updateTheme();
-
-        themeToggle.addEventListener('click', () => {
-            isDarkMode = !isDarkMode;
-            localStorage.setItem('darkMode', isDarkMode);
-            updateTheme();
+        menuButton?.addEventListener('click', () => {
+            sidebar?.classList.toggle('hidden');
         });
 
-        window.addEventListener('resize', handleResize);
-        handleResize();
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                sidebar?.classList.remove('hidden');
+            }
+        });
 
         // Add smooth scroll behavior
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -406,5 +403,5 @@ if ($stmt = $conn->prepare($loanHistoryQuery)) {
         });
     </script>
 </body>
-
 </html>
+<?php include 'new_footer.php'; ?>

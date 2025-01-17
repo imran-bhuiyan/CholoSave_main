@@ -23,7 +23,7 @@ if ($stmt = $conn->prepare($checkAdminQuery)) {
     $stmt->bind_result($group_admin_id);
     $stmt->fetch();
     $stmt->close();
-    
+
     if ($group_admin_id === $user_id) {
         $is_admin = true;
     }
@@ -70,10 +70,10 @@ if ($stmt = $conn->prepare($membersQuery)) {
 // Update member role to admin
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['make_admin'])) {
     $target_user_id = $_POST['user_id'];
-    
+
     // Start transaction
     $conn->begin_transaction();
-    
+
     try {
         // Update my_group table to set new admin
         $updateGroupAdminQuery = "UPDATE my_group SET group_admin_id = ? WHERE group_id = ?";
@@ -81,38 +81,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['make_admin'])) {
         $stmt->bind_param('ii', $target_user_id, $group_id);
         $stmt->execute();
         $stmt->close();
-        
+
         // Update group_membership for old admin (current user)
         $updateOldAdminQuery = "UPDATE group_membership SET is_admin = 0 WHERE user_id = ? AND group_id = ?";
         $stmt = $conn->prepare($updateOldAdminQuery);
         $stmt->bind_param('ii', $user_id, $group_id);
         $stmt->execute();
         $stmt->close();
-        
+
         // Update group_membership for new admin
         $updateNewAdminQuery = "UPDATE group_membership SET is_admin = 1 WHERE user_id = ? AND group_id = ?";
         $stmt = $conn->prepare($updateNewAdminQuery);
         $stmt->bind_param('ii', $target_user_id, $group_id);
         $stmt->execute();
         $stmt->close();
-        
+
         // Create notification for new admin
         $messageTitle = " Group Admin Promotion";
         $message = "You have been promoted to admin of the group.";
         $notificationQuery = "INSERT INTO notifications (target_user_id, target_group_id, message,title, type, created_at) VALUES (?, ?, ?,?, 'admin_promotion', NOW())";
         $stmt = $conn->prepare($notificationQuery);
-        $stmt->bind_param('iiss', $target_user_id, $group_id, $message,$messageTitle);
+        $stmt->bind_param('iiss', $target_user_id, $group_id, $message, $messageTitle);
         $stmt->execute();
         $stmt->close();
-        
+
         // Commit transaction
         $conn->commit();
-        
+
         // Clear session and redirect to login
         session_destroy();
         echo json_encode(['success' => true]);
         exit;
-        
+
     } catch (Exception $e) {
         // Rollback transaction on error
         $conn->rollback();
@@ -206,25 +206,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['make_admin'])) {
                                             ?>
                                             <tr class="hover:bg-gray-50 transition-colors duration-200">
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <?php echo $serial++; ?> </td>
+                                                    <?php echo $serial++; ?>
+                                                </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                    <?php echo htmlspecialchars($member['name']); ?> </td>
+                                                    <?php echo htmlspecialchars($member['name']); ?>
+                                                </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <?php echo htmlspecialchars($member['email']); ?> </td>
+                                                    <?php echo htmlspecialchars($member['email']); ?>
+                                                </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <?php echo date('Y-m-d', strtotime($member['join_date'])); ?> </td>
+                                                    <?php echo date('Y-m-d', strtotime($member['join_date'])); ?>
+                                                </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <?php echo $member['role']; ?> </td>
+                                                    <?php echo $member['role']; ?>
+                                                </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <?php echo $member['contribution']; ?> </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-        <?php if ($member['role'] === 'Member'): ?>
-            <button onclick="confirmMakeAdmin(<?php echo $member['user_id']; ?>)"
-                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
-                <i class="fas fa-user-shield mr-2"></i> Make Admin
-            </button>
-        <?php endif; ?>
-    </td>
+                                                    <?php echo $member['contribution']; ?>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <?php if ($member['role'] === 'Member'): ?>
+                                                        <button onclick="confirmMakeAdmin(<?php echo $member['user_id']; ?>)"
+                                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                                                            <i class="fas fa-user-shield mr-2"></i> Make Admin
+                                                        </button>
+                                                    <?php endif; ?>
+                                                </td>
                                             </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($members)): ?>
@@ -268,24 +274,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['make_admin'])) {
                         method: 'POST',
                         body: formData
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire(
-                                'Admin Changed!',
-                                'You will be logged out now.',
-                                'success'
-                            ).then(() => {
-                                window.location.href = '/test_project/logout.php';
-                            });
-                        } else {
-                            Swal.fire(
-                                'Error!',
-                                'Something went wrong.',
-                                'error'
-                            );
-                        }
-                    });
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire(
+                                    'Admin Changed!',
+                                    'You will be logged out now.',
+                                    'success'
+                                ).then(() => {
+                                    window.location.href = '/test_project/logout.php';
+                                });
+                            } else {
+                                Swal.fire(
+                                    'Error!',
+                                    'Something went wrong.',
+                                    'error'
+                                );
+                            }
+                        });
                 }
             });
         }
@@ -293,3 +299,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['make_admin'])) {
 </body>
 
 </html>
+
+<?php include 'new_footer.php'; ?>

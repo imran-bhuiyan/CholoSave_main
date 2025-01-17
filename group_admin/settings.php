@@ -257,3 +257,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 
 </html>
+
+<?php include 'new_footer.php'; ?>

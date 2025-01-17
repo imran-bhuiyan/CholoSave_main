@@ -225,9 +225,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             <header class="glass-effect shadow-sm border-b border-gray-200">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-center">
                     <div class="flex items-center justify-center">
-                        <button id="menu-button" class="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100">
-                            <i class="fa-solid fa-bars text-xl"></i>
-                        </button>
                         <h1 class="text-2xl font-semibold text-gray-800 ml-4">
                             <i class="fa-solid fa-user-times text-blue-600 mr-3"></i>
                             Member Leave Requests
@@ -240,86 +237,62 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             <div class="flex-1 overflow-y-auto p-6">
                 <div class="max-w-7xl mx-auto">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <!-- Stats Overview -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-gradient-to-r from-blue-50 to-blue-50">
-                            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-                                <div class="text-sm font-medium text-gray-500">Pending Requests</div>
-                                <div class="mt-2 text-3xl font-semibold text-blue-600">
-                                    <?php echo count($leaveRequests); ?>
-                                </div>
-                            </div>
-                            <!-- Add more stats cards as needed -->
-                        </div>
-
-                        <!-- Table Section -->
                         <div class="p-6">
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead>
                                         <tr class="bg-gray-50">
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Serial</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                name</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Join Date</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Time Period Remaining</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Total Contribution</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Serial
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Name
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Join Date
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Installment Remaining
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Total Contribution
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Withdraw Amount
                                             </th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Actions
                                             </th>
-
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
                                         <?php
                                         $serial = 1;
                                         foreach ($leaveRequests as $request):
-                                            ?>
+                                        ?>
                                             <tr class="hover:bg-gray-50 transition-colors duration-200">
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     <?php echo $serial++; ?>
                                                 </td>
-
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     <?php echo htmlspecialchars($request['username']); ?>
                                                 </td>
-
-
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                    <?php echo date('d M Y', strtotime($request['join_date'])); ?>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <?php echo date('Y-m-d', strtotime($request['join_date'])); ?>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     <?php echo $request['time_period_remaining']; ?> months
                                                 </td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <span class="text-sm font-medium text-gray-900">
-                                                        ৳<?php echo number_format($request['total_contribution'], 2); ?>
-                                                    </span>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    ৳<?php echo number_format($request['total_contribution'], 2); ?>
                                                 </td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <span class="text-sm font-medium text-gray-900">
-                                                        ৳<?php echo number_format($request['total_withdrawn'], 2); ?>
-                                                    </span>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    ৳<?php echo number_format($request['total_withdrawn'], 2); ?>
                                                 </td>
-
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <form method="POST" class="flex space-x-2">
-                                                        <input type="hidden" name="user_id"
-                                                            value="<?php echo $request['user_id']; ?>">
-                                                        <button type="submit" name="action" value="approve"
+                                                        <input type="hidden" name="user_id" value="<?php echo $request['user_id']; ?>">
+                                                        <button type="submit" name="action" value="approve" 
                                                             class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
                                                             <i class="fas fa-check mr-2"></i> Approve
                                                         </button>
@@ -333,7 +306,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                         <?php endforeach; ?>
                                         <?php if (empty($leaveRequests)): ?>
                                             <tr>
-                                                <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                                                <td colspan="7" class="px-6 py-10 text-center text-gray-500">
                                                     <i class="fas fa-inbox text-4xl mb-4"></i>
                                                     <p>No pending leave requests</p>
                                                 </td>
@@ -350,8 +323,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     </div>
 
     <script>
-        // Menu toggle for mobile
-        document.getElementById('menu-button').addEventListener('click', function () {
+        document.getElementById('menu-button')?.addEventListener('click', function() {
             const sidebar = document.querySelector('.sidebar');
             sidebar.classList.toggle('-translate-x-full');
         });
@@ -359,3 +331,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 </body>
 
 </html>
+
+<?php include 'new_footer.php'; ?>

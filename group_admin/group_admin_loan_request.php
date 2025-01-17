@@ -79,6 +79,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $errors['emergencyFundQuery'] = 'Error fetching emergency fund.';
     }
 
+    // Get admin's name for poll creation
+    $userName = '';
+    if (empty($errors)) {
+        $nameQuery = "SELECT name FROM users WHERE id = ?";
+        if ($nameStmt = $conn->prepare($nameQuery)) {
+            $nameStmt->bind_param('i', $user_id);
+            $nameStmt->execute();
+            $nameStmt->bind_result($userName);
+            $nameStmt->fetch();
+            $nameStmt->close();
+        }
+    }
+
     // If no errors, proceed with database insertion
     if (empty($errors)) {
         // Check if the user already has an outstanding loan in the same group
@@ -103,38 +116,66 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         });
                       </script>";
             } else {
-                // No outstanding loan, proceed with inserting loan request
-                $loanQuery = "INSERT INTO loan_request (user_id, group_id, reason, amount, return_time) VALUES (?, ?, ?, ?, ?)";
-                if ($stmt = $conn->prepare($loanQuery)) {
+                // No outstanding loan, proceed with loan request and poll creation
+                $conn->begin_transaction(); // Start transaction for multiple operations
+                try {
+                    // Insert loan request
+                    $loanQuery = "INSERT INTO loan_request (user_id, group_id, reason, amount, return_time) VALUES (?, ?, ?, ?, ?)";
+                    $stmt = $conn->prepare($loanQuery);
                     $stmt->bind_param('iisis', $user_id, $group_id, $reason, $amount, $returnDate);
-                    if ($stmt->execute()) {
-                        // After successful loan insertion, show success message
-                        echo "<script>
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    Swal.fire({
-                                        title: 'Success!',
-                                        text: 'Loan request submitted successfully.',
-                                        icon: 'success',
-                                        confirmButtonText: 'OK'
-                                    }).then(() => {
-                                        window.location.href = '/test_project/group_admin/group_admin_loan_request.php';
-                                    });
-                                });
-                              </script>";
-                    } else {
-                        $errors['submission'] = 'Error submitting loan request.';
-                    }
+                    $stmt->execute();
+                    $loanId = $stmt->insert_id;
                     $stmt->close();
-                } else {
-                    $errors['query'] = 'Error preparing loan request query.';
+
+                    // Create poll
+                    $pollQuestion = "$userName (Admin) has requested a loan of BDT $amount. Do you approve?";
+                    $pollQuery = "INSERT INTO polls (group_id, poll_question) VALUES (?, ?)";
+                    $pollStmt = $conn->prepare($pollQuery);
+                    $pollStmt->bind_param('is', $group_id, $pollQuestion);
+                    $pollStmt->execute();
+                    $pollStmt->close();
+
+                    $conn->commit(); // Commit transaction
+
+                    // Show success message
+                    echo "<script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'Loan request submitted successfully and poll created.',
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                }).then(() => {
+                                    window.location.href = '/test_project/group_admin/group_admin_loan_request.php';
+                                });
+                            });
+                          </script>";
+
+                } catch (Exception $e) {
+                    $conn->rollback(); // Rollback on error
+                    $errors['submission'] = 'Error processing loan request: ' . $e->getMessage();
                 }
             }
             $loanCheckStmt->close();
         }
     }
+
+    // Display any errors
+    if (!empty($errors)) {
+        $errorMessage = implode('\n', $errors);
+        echo "<script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: '$errorMessage',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                });
+              </script>";
+    }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -212,8 +253,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 absolute left-2">
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
-                    <h1 class="text-5xl font-semibold custom-font">
-                        <i class="fa-solid fa-money-bill-transfer text-blue-600 mr-3"></i>
+                    <h1 class="text-2xl font-semibold custom-font">
+                        <i class="fa-solid fa-hand-holding-usd mr-2 text-blue-600"></i>
                         Loan Request
 
                     </h1>
@@ -226,12 +267,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="bg-white rounded-lg shadow-lg p-8">
                         <!-- Form Header -->
                         <div class="mb-8 text-center">
-                            <h2 class="text-2xl font-semibold custom-font text-gray-800">
-                                <i class="fas fa-hand-holding-usd mr-2"></i>
-                                Emergency Loan Request Form
+                        <h2 class="text-1xl font-semibold custom-font text-red-800">
+                                <i class="fa-solid fa-file-signature mr-2"></i>
+                                Please fill in the details below to submit your loan request
                             </h2>
-                            <p class="text-gray-600 mt-2">Please fill in the details below to submit your loan request
-                            </p>
                         </div>
 
                         <!-- Loan Request Form -->
@@ -367,35 +406,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <script>
 
-        // Dark mode functionality
-        let isDarkMode = localStorage.getItem('darkMode') === 'true';
-        const body = document.body;
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = themeToggle.querySelector('i');
-        const themeText = themeToggle.querySelector('span');
+        // // Dark mode functionality
+        // let isDarkMode = localStorage.getItem('darkMode') === 'true';
+        // const body = document.body;
+        // const themeToggle = document.getElementById('theme-toggle');
+        // const themeIcon = themeToggle.querySelector('i');
+        // const themeText = themeToggle.querySelector('span');
 
-        function updateTheme() {
-            if (isDarkMode) {
-                body.classList.add('dark-mode');
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-                themeText.textContent = 'Light Mode';
-            } else {
-                body.classList.remove('dark-mode');
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-                themeText.textContent = 'Dark Mode';
-            }
-        }
+        // function updateTheme() {
+        //     if (isDarkMode) {
+        //         body.classList.add('dark-mode');
+        //         themeIcon.classList.remove('fa-moon');
+        //         themeIcon.classList.add('fa-sun');
+        //         themeText.textContent = 'Light Mode';
+        //     } else {
+        //         body.classList.remove('dark-mode');
+        //         themeIcon.classList.remove('fa-sun');
+        //         themeIcon.classList.add('fa-moon');
+        //         themeText.textContent = 'Dark Mode';
+        //     }
+        // }
 
-        // Initialize theme
-        updateTheme();
+        // // Initialize theme
+        // updateTheme();
 
-        themeToggle.addEventListener('click', () => {
-            isDarkMode = !isDarkMode;
-            localStorage.setItem('darkMode', isDarkMode);
-            updateTheme();
-        });
+        // themeToggle.addEventListener('click', () => {
+        //     isDarkMode = !isDarkMode;
+        //     localStorage.setItem('darkMode', isDarkMode);
+        //     updateTheme();
+        // });
 
 
         window.addEventListener('resize', handleResize);

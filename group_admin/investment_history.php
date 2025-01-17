@@ -272,3 +272,5 @@ $_SESSION['investment_data'] = $investments;
     </script>
 </body>
 </html>
+
+<?php include 'new_footer.php'; ?>

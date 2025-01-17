@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 absolute left-2">
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
-                    <h1 class="text-5xl font-semibold">
+                    <h1 class="text-2xl font-semibold">
                         <i class="fa-solid fa-money-bill-wave text-blue-600 mr-3"></i>
                         Record Investment Returns
                     </h1>
@@ -152,11 +152,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="bg-white rounded-lg shadow-lg p-8">
                         <!-- Form Header -->
                         <div class="mb-8 text-center">
-                            <h2 class="text-2xl font-semibold text-gray-800">
-                                <i class="fas fa-hand-holding-usd mr-2"></i>
-                                Record Investment Return
+                        <h2 class="text-1xl font-semibold custom-font text-red-800">
+                                <i class="fa-solid fa-file-signature mr-2"></i>
+                                Please fill in the details below to record the return on investment
                             </h2>
-                            <p class="text-gray-600 mt-2">Please fill in the details below to record the return on investment.</p>
+                         
                         </div>
 
                         <!-- Return Form -->
@@ -228,35 +228,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <script>
  // Dark mode functionality
- let isDarkMode = localStorage.getItem('darkMode') === 'true';
-        const body = document.body;
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = themeToggle.querySelector('i');
-        const themeText = themeToggle.querySelector('span');
+//  let isDarkMode = localStorage.getItem('darkMode') === 'true';
+//         const body = document.body;
+//         const themeToggle = document.getElementById('theme-toggle');
+//         const themeIcon = themeToggle.querySelector('i');
+//         const themeText = themeToggle.querySelector('span');
 
-        function updateTheme() {
-            if (isDarkMode) {
-                body.classList.add('dark-mode');
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-                themeText.textContent = 'Light Mode';
-            } else {
-                body.classList.remove('dark-mode');
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-                themeText.textContent = 'Dark Mode';
-            }
-        }
+//         function updateTheme() {
+//             if (isDarkMode) {
+//                 body.classList.add('dark-mode');
+//                 themeIcon.classList.remove('fa-moon');
+//                 themeIcon.classList.add('fa-sun');
+//                 themeText.textContent = 'Light Mode';
+//             } else {
+//                 body.classList.remove('dark-mode');
+//                 themeIcon.classList.remove('fa-sun');
+//                 themeIcon.classList.add('fa-moon');
+//                 themeText.textContent = 'Dark Mode';
+//             }
+//         }
 
-        // Initialize theme
-        updateTheme();
+//         // Initialize theme
+//         updateTheme();
 
-        themeToggle.addEventListener('click', () => {
-            isDarkMode = !isDarkMode;
-            localStorage.setItem('darkMode', isDarkMode);
-            updateTheme();
-        });
+//         themeToggle.addEventListener('click', () => {
+//             isDarkMode = !isDarkMode;
+//             localStorage.setItem('darkMode', isDarkMode);
+//             updateTheme();
+//         });
 </script>
 
 </body>
 </html>
+<?php include 'new_footer.php'; ?>

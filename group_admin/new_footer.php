@@ -1,55 +1,100 @@
-<footer class="bg-gray-900 text-gray-200 py-10">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-      <!-- Logo and Description -->
-      <div>
-        <h2 class="text-xl font-bold text-white">CholoSave</h2>
-        <p class="mt-2 text-sm">
-          A platform to save, invest, and achieve shared goals with friends. Empowering smarter savings for everyone.
-        </p>
-      </div>
-      <!-- Quick Links -->
-      <div>
-        <h3 class="text-lg font-semibold text-white">Quick Links</h3>
-        <ul class="mt-2 space-y-2">
-          <li><a href="#" class="hover:text-gray-400">Home</a></li>
-          <li><a href="#" class="hover:text-gray-400">About Us</a></li>
-          <li><a href="#" class="hover:text-gray-400">Features</a></li>
-          <li><a href="#" class="hover:text-gray-400">Contact</a></li>
-        </ul>
-      </div>
-      <!-- Resources -->
-      <div>
-        <h3 class="text-lg font-semibold text-white">Resources</h3>
-        <ul class="mt-2 space-y-2">
-          <li><a href="#" class="hover:text-gray-400">FAQs</a></li>
-          <li><a href="#" class="hover:text-gray-400">Support</a></li>
-          <li><a href="#" class="hover:text-gray-400">Blog</a></li>
-          <li><a href="#" class="hover:text-gray-400">Terms & Conditions</a></li>
-        </ul>
-      </div>
-      <!-- Social Media -->
-      <div>
-        <h3 class="text-lg font-semibold text-white">Follow Us</h3>
-        <div class="flex mt-4 space-x-4">
-          <a href="#" class="hover:text-gray-400">
-            <i class="fab fa-facebook fa-lg"></i>
-          </a>
-          <a href="#" class="hover:text-gray-400">
-            <i class="fab fa-twitter fa-lg"></i>
-          </a>
-          <a href="#" class="hover:text-gray-400">
-            <i class="fab fa-instagram fa-lg"></i>
-          </a>
-          <a href="#" class="hover:text-gray-400">
-            <i class="fab fa-linkedin fa-lg"></i>
-          </a>
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* Reset default margins and ensure full height */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        /* Main wrapper to create sticky footer */
+        .wrapper {
+            min-height: 20%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Content area that will grow to push footer down */
+        .content {
+            flex: 1;
+        }
+
+        .footer {
+            width: 100%;
+            background-color: #ffffff;
+            border-top: 1px solid #eaeaea;
+            padding: 24px 0;
+            text-align: center;
+            margin-top: auto;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.02);
+        }
+
+        .footer-nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 32px;
+        }
+
+        .footer-link {
+            color: #4b5563;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            letter-spacing: -0.01em;
+        }
+
+        .footer-link:hover {
+            color: #111827;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .footer {
+                padding: 20px 0;
+            }
+            
+            .footer-links {
+                gap: 24px;
+            }
+            
+            .footer-link {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="content">
+            <!-- Your page content goes here -->
         </div>
-      </div>
+
+        <footer class="footer">
+            <nav class="footer-nav">
+                <ul class="footer-links">
+                    <li><a href="#" class="footer-link">Help</a></li>
+                    <li><a href="/test_project/group_adminr/group_admin_dashboard.php" class="footer-link">Dashboard</a></li>
+                    <li><a href="/test_project/group_admin/group_members.php" class="footer-link">Members</a></li>
+                    <li><a href="/test_project/group_admin/group_admin_loan_history.php" class="footer-link">Loans</a></li>
+                    <li><a href="/test_project/group_admin/group_admin_withdraw_request.php" class="footer-link">Withdrawal</a></li>
+                    <li><a href="#" class="footer-link">AI Tips</a></li>
+                </ul>
+            </nav>
+        </footer>
     </div>
-    <!-- Bottom Section -->
-    <div class="mt-8 border-t border-gray-700 pt-4 text-center text-sm">
-      <p>&copy; 2025 GroupSave. All rights reserved.</p>
-    </div>
-  </div>
-</footer>
+</body>
+</html>

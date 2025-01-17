@@ -8,7 +8,7 @@ if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
     $group_id = $_SESSION['group_id'];
     $user_id = $_SESSION['user_id'];
    
-    echo 'group_id: '. $group_id; echo 'user_id: '. $user_id;
+    // echo 'group_id: '. $group_id; echo 'user_id: '. $user_id;
 }
 if (!isset($_SESSION['group_id']) || !isset($_SESSION['user_id'])) {
     header("Location: /test_project/error_page.php"); // Redirect if session variables are missing
@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             font-family: 'Poppins', sans-serif;
         }
 
-        .dark-mode {
+        /* .dark-mode {
             background-color: #1a1a1a;
             color: #ffffff;
         }
@@ -164,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .dark-mode .quick-amount-wrapper .peer:checked+label {
             background-color: #3b82f6;
             color: white;
-        }
+        } */
     </style>
 </head>
 
@@ -182,8 +182,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 absolute left-2">
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
-                    <h1 class="text-5xl font-semibold custom-font">
-                        <i class="fa-solid fa-money-bill-transfer text-blue-600 mr-3"></i>
+                    <h1 class="text-2xl font-semibold custom-font">
+                        <i class="fa-solid fa-chart-line text-blue-600 mr-3"></i>
                         Investment Entry
                     </h1>
                 </div>
@@ -195,11 +195,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="bg-white rounded-lg shadow-lg p-8">
                         <!-- Form Header -->
                         <div class="mb-8 text-center">
-                            <h2 class="text-2xl font-semibold custom-font text-gray-800">
-                                <i class="fas fa-hand-holding-usd mr-2"></i>
-                                Investment Entry Form
+                        <h2 class="text-1xl font-semibold custom-font text-red-800">
+                                <i class="fa-solid fa-file-signature mr-2"></i>
+                                Please fill in the details below to submit your investment details
                             </h2>
-                            <p class="text-gray-600 mt-2">Please fill in the details below to submit your investment.</p>
                         </div>
 
                         <!-- Investment Form -->
@@ -287,35 +286,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 
 <script>
-    // Dark mode functionality (same as in your original code)
-    let isDarkMode = localStorage.getItem('darkMode') === 'true';
-    const body = document.body;
-    const themeToggle = document.getElementById('theme-toggle');
-    const themeIcon = themeToggle.querySelector('i');
-    const themeText = themeToggle.querySelector('span');
+    // // Dark mode functionality (same as in your original code)
+    // let isDarkMode = localStorage.getItem('darkMode') === 'true';
+    // const body = document.body;
+    // const themeToggle = document.getElementById('theme-toggle');
+    // const themeIcon = themeToggle.querySelector('i');
+    // const themeText = themeToggle.querySelector('span');
 
-    function updateTheme() {
-        if (isDarkMode) {
-            body.classList.add('dark-mode');
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
-            themeText.textContent = 'Light Mode';
-        } else {
-            body.classList.remove('dark-mode');
-            themeIcon.classList.remove('fa-sun');
-            themeIcon.classList.add('fa-moon');
-            themeText.textContent = 'Dark Mode';
-        }
-    }
+    // function updateTheme() {
+    //     if (isDarkMode) {
+    //         body.classList.add('dark-mode');
+    //         themeIcon.classList.remove('fa-moon');
+    //         themeIcon.classList.add('fa-sun');
+    //         themeText.textContent = 'Light Mode';
+    //     } else {
+    //         body.classList.remove('dark-mode');
+    //         themeIcon.classList.remove('fa-sun');
+    //         themeIcon.classList.add('fa-moon');
+    //         themeText.textContent = 'Dark Mode';
+    //     }
+    // }
 
-    // Initialize theme
-    updateTheme();
+    // // Initialize theme
+    // updateTheme();
 
-    themeToggle.addEventListener('click', () => {
-        isDarkMode = !isDarkMode;
-        localStorage.setItem('darkMode', isDarkMode);
-        updateTheme();
-    });
+    // themeToggle.addEventListener('click', () => {
+    //     isDarkMode = !isDarkMode;
+    //     localStorage.setItem('darkMode', isDarkMode);
+    //     updateTheme();
+    // });
 </script>
 </body>
 </html>
+<?php include 'new_footer.php'; ?>
