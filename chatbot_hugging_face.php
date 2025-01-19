@@ -116,7 +116,7 @@
         // Get response from Hugging Face API
         async function getAIResponse(query) {
             const apiKey = ""; // Replace with your Hugging Face API key
-            const apiUrl = "https://huggingface.co/microsoft/phi-4"; // Example model endpoint
+            const apiUrl = " "; // Example model endpoi
 
             try {
                 const response = await fetch(apiUrl, {
