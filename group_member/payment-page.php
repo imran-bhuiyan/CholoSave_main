@@ -91,6 +91,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $update_stmt->bind_param('ii', $user_id, $group_id);
       $update_stmt->execute();
 
+       // Add 1% of the payment amount to the leaderboard
+       $points = $total_amount * 0.01; 
+       $update_leaderboard_stmt = $conn->prepare("UPDATE leaderboard SET points = points + ? WHERE group_id = ?");
+       $update_leaderboard_stmt->bind_param('di', $points, $group_id);
+       $update_leaderboard_stmt->execute();
+
       $conn->commit();
       
       $_SESSION['transaction_id'] = $transaction_id;

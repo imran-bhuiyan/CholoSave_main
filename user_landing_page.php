@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 
@@ -38,6 +37,7 @@ $stmt->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cholosave</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -73,6 +73,29 @@ $stmt->close();
             line-height: 1.1;
             margin-bottom: 1.5rem;
             font-weight: 600;
+        }
+
+        .typing-text {
+            border-right: 2px solid #000;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 0;
+            animation: typing 2s steps(30, end) forwards,
+                       blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #000 }
+        }
+
+        .welcome-container {
+            display: inline-block;
         }
 
         .subtitle {
@@ -157,7 +180,11 @@ $stmt->close();
 
     <main>
         <div class="hero-content -mt-80">
-            <h1><?php echo $pageTitle; ?></h1>
+            <h1>
+                <div class="welcome-container">
+                    <div id="welcome-text" data-text="<?php echo $pageTitle; ?>"></div>
+                </div>
+            </h1>
             <p class="subtitle"><?php echo $subtitle; ?></p>
             <a href="/test_project/groups.php" class="cta-button">Start</a>
         </div>
@@ -166,6 +193,22 @@ $stmt->close();
         </div>
     </main>
 
+    <script>
+        function startTypingAnimation(text) {
+            const container = document.querySelector('.welcome-container');
+            const typingElement = document.createElement('div');
+            typingElement.className = 'typing-text';
+            typingElement.textContent = text;
+            container.innerHTML = '';
+            container.appendChild(typingElement);
+        }
+
+        // Start animation when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const welcomeText = document.getElementById('welcome-text').dataset.text;
+            startTypingAnimation(welcomeText);
+        });
+    </script>
 </body>
 
 </html>

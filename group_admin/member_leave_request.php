@@ -136,6 +136,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $stmt->execute();
             $stmt->close();
 
+
+            // Deduct 10 points to the leaderboard
+            $updateLeaderboardQuery = "UPDATE leaderboard SET points = points - 10 WHERE group_id = ?";
+            if ($stmt = $conn->prepare($updateLeaderboardQuery)) {
+                $stmt->bind_param('i', $group_id);
+                $stmt->execute();
+                $stmt->close();
+            }
+
             // 6. Create notification for user
             $userNotificationTitle = "Leave Request Approved";
             $userNotificationMessage = "Your request to leave the group '$groupname' has been approved.";
@@ -168,7 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         } catch (Exception $e) {
             // If any operation fails, rollback all changes
             $conn->rollback();
-            
+
             // Redirect with error message
             echo "<script>
                     alert('Error processing leave request. Please try again.');
@@ -242,25 +251,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead>
                                         <tr class="bg-gray-50">
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Serial
                                             </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Name
                                             </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Join Date
                                             </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Installment Remaining
                                             </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Total Contribution
                                             </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Withdraw Amount
                                             </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Actions
                                             </th>
                                         </tr>
@@ -269,7 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                         <?php
                                         $serial = 1;
                                         foreach ($leaveRequests as $request):
-                                        ?>
+                                            ?>
                                             <tr class="hover:bg-gray-50 transition-colors duration-200">
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     <?php echo $serial++; ?>
@@ -291,8 +307,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <form method="POST" class="flex space-x-2">
-                                                        <input type="hidden" name="user_id" value="<?php echo $request['user_id']; ?>">
-                                                        <button type="submit" name="action" value="approve" 
+                                                        <input type="hidden" name="user_id"
+                                                            value="<?php echo $request['user_id']; ?>">
+                                                        <button type="submit" name="action" value="approve"
                                                             class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
                                                             <i class="fas fa-check mr-2"></i> Approve
                                                         </button>
@@ -323,7 +340,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     </div>
 
     <script>
-        document.getElementById('menu-button')?.addEventListener('click', function() {
+        document.getElementById('menu-button')?.addEventListener('click', function () {
             const sidebar = document.querySelector('.sidebar');
             sidebar.classList.toggle('-translate-x-full');
         });

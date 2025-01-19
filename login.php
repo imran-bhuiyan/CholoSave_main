@@ -62,62 +62,220 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<?php include 'includes/header.php'; ?>
+<?php include 'includes/new_header.php'; ?>
 
-<main class="bg-gray-100 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="w-full max-w-4xl bg-white shadow-xl rounded-lg flex flex-col md:flex-row">
-        
-        <!-- Left side: Image -->
-        <div class="hidden md:block w-full md:w-1/2 rounded-lg overflow-hidden">
-            <img src="/test_project/assets/images/login.png" alt="Login Image" class="w-full h-full object-cover">
+<style>
+.login-container {
+    font-family: 'Poppins', sans-serif;
+    min-height: calc(100vh - 5rem);
+    background-color: #f4f7f9;
+    padding: 2rem 1rem;
+}
+
+.login-card {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    display: flex;
+}
+
+.login-image {
+    width: 50%;
+    background: linear-gradient(135deg, #003366 0%, #004080 100%);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.login-image img {
+    max-width: 80%;
+    height: auto;
+    margin-bottom: 2rem;
+}
+
+.login-form {
+    width: 50%;
+    padding: 3rem 2rem;
+}
+
+.login-title {
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-title span {
+    background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #4B5563;
+    margin-bottom: 0.5rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.5rem;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #1E40AF;
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.login-button {
+    width: 100%;
+    padding: 0.875rem;
+    background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.login-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: #4B5563;
+    font-size: 0.875rem;
+}
+
+.register-link a {
+    color: #1E40AF;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.alert-error {
+    background-color: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #FCA5A5;
+}
+
+.alert-success {
+    background-color: #D1FAE5;
+    color: #065F46;
+    border: 1px solid #6EE7B7;
+}
+
+@media (max-width: 768px) {
+    .login-card {
+        flex-direction: column;
+    }
+    
+    .login-image,
+    .login-form {
+        width: 100%;
+    }
+    
+    .login-image {
+        padding: 2rem 1rem;
+    }
+    
+    .login-form {
+        padding: 2rem 1.5rem;
+    }
+}
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-image">
+            <img src="/test_project/assets/images/login.png" alt="Login">
+            <h2>Welcome Back!</h2>
+            <p>Access your account and start managing your finances</p>
         </div>
-
-        <!-- Right side: Form -->
-        <div class="w-full md:w-1/2 flex flex-col space-y-6 p-8">
-            <h2 class="text-3xl font-semibold text-center text-gray-900">Login to <span class="text-blue-600">CholoSave</span></h2>
-
-            <!-- Display Success or Error Messages -->
+        
+        <div class="login-form">
+            <h1 class="login-title">Login to <span>CholoSave</span></h1>
+            
             <?php if ($success_message): ?>
-                <div class="bg-green-100 text-green-800 p-4 rounded-md mb-4">
+                <div class="alert alert-success">
                     <?php echo $success_message; ?>
                 </div>
-            <?php elseif ($error_message): ?>
-                <div class="bg-red-100 text-red-800 p-4 rounded-md mb-4">
+            <?php endif; ?>
+            
+            <?php if ($error_message): ?>
+                <div class="alert alert-error">
                     <?php echo $error_message; ?>
                 </div>
             <?php endif; ?>
-
-            <!-- Form -->
-            <form method="POST" class="space-y-6">
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input"
+                        placeholder="Enter your email"
+                        value="<?php echo htmlspecialchars($email); ?>"
+                        required
+                    >
+                </div>
                 
-                <!-- Email Input -->
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                    <input type="email" name="email" id="email" placeholder="Enter your email" required 
-                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent placeholder-gray-400 transition ease-in-out duration-150"
-                        value="<?php echo htmlspecialchars($email); ?>">
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input"
+                        placeholder="Enter your password"
+                        required
+                    >
                 </div>
-
-                <!-- Password Input -->
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" name="password" id="password" placeholder="Enter your password" required 
-                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent placeholder-gray-400 transition ease-in-out duration-150">
-                </div>
-
-                <!-- Login Button -->
-                <div>
-                    <button type="submit" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition transform duration-300 ease-in-out hover:scale-105">
-                        Login
-                    </button>
-                </div>
+                
+                <button type="submit" class="login-button">
+                    Login
+                </button>
             </form>
-
-            <p class="text-center text-sm text-gray-600">Don't have an account? 
-                <a href="/test_project/register.php" class="text-blue-600 hover:underline">Register here</a>
-            </p>
+            
+            <div class="register-link">
+                Don't have an account? 
+                <a href="/test_project/register.php">Register here</a>
+            </div>
         </div>
     </div>
-</main>
+</div>
 
-<?php include 'includes/footer.php'; ?>
+<?php include 'includes/test_footer.php'; ?>

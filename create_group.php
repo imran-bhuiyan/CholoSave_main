@@ -52,17 +52,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         if ($stmt->execute()) {
+
+            
             // Get the last inserted group_id
             $group_id = $stmt->insert_id;
-    
+            // Calculate points: initial points (5) + 1% of emergency_fund
+            $points = 5 + (0.01 * $emergency_fund);
+
+            // Insert values into the leaderboard table
+            $leaderboardQuery = "INSERT INTO leaderboard (group_id, points) VALUES (?, ?)";
+            $leaderboardStmt = $conn->prepare($leaderboardQuery);
+            $leaderboardStmt->bind_param("id", $group_id, $points); // Use 'id' for group_id (int) and points (double)
+
+            if (!$leaderboardStmt->execute()) {
+                throw new Exception("Error inserting into leaderboard: " . $conn->error);
+            }
+
+
+
+
+
+
+
             // Store the group_id in the session
             $_SESSION['group_id'] = $group_id;
-    
+
             // Insert the user into the group_membership table with status 'approved' and is_admin = 1
             $membershipQuery = "INSERT INTO group_membership (group_id, user_id, status, is_admin, join_date, time_period_remaining) VALUES (?, ?, 'approved', 1, NOW(),?)";
             $membershipStmt = $conn->prepare($membershipQuery);
             $membershipStmt->bind_param("iii", $group_id, $_SESSION['user_id'], $time_period);
-            
+
             if ($membershipStmt->execute()) {
                 // Role-checking logic
                 $query = "SELECT is_admin FROM group_membership WHERE group_id = ? AND user_id = ?";
@@ -70,11 +89,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bind_param("ii", $group_id, $_SESSION['user_id']);
                 $stmt->execute();
                 $stmt->store_result();
-                
+
                 if ($stmt->num_rows > 0) {
                     $stmt->bind_result($is_admin);
                     $stmt->fetch();
-    
+
                     // Redirect based on role
                     if ($is_admin) {
                         header("Location: /test_project/group_admin/group_admin_dashboard.php?group_id=" . $group_id);
@@ -96,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error_message = $e->getMessage();
         header("Location: error_page.php?error=" . urlencode($error_message));
         exit();
-    }   
+    }
 }
 ?>
 
@@ -104,13 +123,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include 'includes/header2.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Group</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -118,23 +138,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flex-direction: column;
             min-height: 100vh;
         }
+
         .step {
             opacity: 0;
             transform: translateY(20px);
             transition: all 0.5s ease-out;
             display: none;
         }
+
         .step.active {
             opacity: 1;
             transform: translateY(0);
             display: block;
         }
+
         .progress-bar {
             transition: width 0.5s ease-out;
         }
+
         .content {
-            flex: 1; /* This ensures the content area takes up the available space */
+            flex: 1;
+            /* This ensures the content area takes up the available space */
         }
+
         footer {
             background-color: #f1f5f9;
             padding: 2rem;
@@ -147,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-gray-50">
     <div class="content container mx-auto px-4 py-8 max-w-5xl">
         <h1 class="text-3xl font-semibold text-center text-gray-800 mb-8">Create Group</h1>
-        
+
         <?php if ($error_message): ?>
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
                 <?php echo htmlspecialchars($error_message); ?>
@@ -192,19 +218,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Group Name</label>
-                        <input type="text" name="group_name" required placeholder="Enter group name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                        <input type="text" name="group_name" required placeholder="Enter group name"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea name="description" required placeholder="Enter group description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500"></textarea>
+                        <textarea name="description" required placeholder="Enter group description" rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500"></textarea>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Members</label>
-                        <input type="number" name="members" required placeholder="Number of members" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                        <input type="number" name="members" required placeholder="Number of members"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
                     </div>
                 </div>
                 <div class="flex justify-end">
-                    <button type="button" class="bg-green-600 text-white px-4 py-2 rounded-md" id="nextButton1">Next</button>
+                    <button type="button" class="bg-green-600 text-white px-4 py-2 rounded-md"
+                        id="nextButton1">Next</button>
                 </div>
             </div>
 
@@ -214,27 +244,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">DPS Type</label>
-                        <select name="dps_type" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                        <select name="dps_type" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
                             <option value="monthly">Monthly</option>
                             <option value="weekly">Weekly</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Time Period</label>
-                        <input type="number" name="time_period" required placeholder="Enter time period (months)" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                        <input type="number" name="time_period" required placeholder="Enter time period (months)"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                        <input type="number" name="amount" required placeholder="Enter amount" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                        <input type="number" name="amount" required placeholder="Enter amount" step="0.01"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                        <input type="date" name="start_date" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                        <input type="date" name="start_date" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
                     </div>
                 </div>
                 <div class="flex justify-between">
-                    <button type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md" id="prevButton1">Previous</button>
-                    <button type="button" class="bg-green-600 text-white px-4 py-2 rounded-md" id="nextButton2">Next</button>
+                    <button type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
+                        id="prevButton1">Previous</button>
+                    <button type="button" class="bg-green-600 text-white px-4 py-2 rounded-md"
+                        id="nextButton2">Next</button>
                 </div>
             </div>
 
@@ -244,20 +280,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">bKash Number</label>
-                        <input type="text" name="bkash_number" placeholder="Optional, enter bKash number" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                        <input type="text" name="bkash_number" placeholder="Optional, enter bKash number"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Rocket Number</label>
-                        <input type="text" name="rocket_number" placeholder="Optional, enter Rocket number" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                        <input type="text" name="rocket_number" placeholder="Optional, enter Rocket number"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nagad Number</label>
-                        <input type="text" name="nagad_number" required placeholder="Enter Nagad number" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                        <input type="text" name="nagad_number" required placeholder="Enter Nagad number"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
                     </div>
                 </div>
                 <div class="flex justify-between">
-                    <button type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md" id="prevButton2">Previous</button>
-                    <button type="button" class="bg-green-600 text-white px-4 py-2 rounded-md" id="nextButton3">Next</button>
+                    <button type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
+                        id="prevButton2">Previous</button>
+                    <button type="button" class="bg-green-600 text-white px-4 py-2 rounded-md"
+                        id="nextButton3">Next</button>
                 </div>
             </div>
 
@@ -267,19 +308,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Goal Amount</label>
-                        <input type="number" name="goal_amount" required placeholder="Enter goal amount" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                        <input type="number" name="goal_amount" required placeholder="Enter goal amount" step="0.01"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Emergency Fund</label>
-                        <input type="number" name="emergency_fund" required placeholder="Enter emergency fund amount" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                        <input type="number" name="emergency_fund" required placeholder="Enter emergency fund amount"
+                            step="0.01"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Warning Threshold</label>
-                        <input type="number" name="warning_threshold" required placeholder="Enter warning threshold amount" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                        <input type="number" name="warning_threshold" required
+                            placeholder="Enter warning threshold amount"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-green-500 focus:border-green-500">
                     </div>
                 </div>
                 <div class="flex justify-between">
-                    <button type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md" id="prevButton3">Previous</button>
+                    <button type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
+                        id="prevButton3">Previous</button>
                     <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-md">Submit</button>
                 </div>
             </div>
@@ -365,4 +412,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         showStep(currentStep); // Initialize the first step
     </script>
 </body>
+
 </html>

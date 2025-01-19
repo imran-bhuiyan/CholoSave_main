@@ -173,7 +173,7 @@
                     </div>
 
                     <!-- Chats -->
-                    <a href="#"
+                    <a href="/test_project/group_chat.php"
                         class="sidebar-item group flex items-center p-3 text-gray-600 rounded-lg hover:bg-white-50 transition-all duration-200">
                         <i class="fas fa-comments w-6 text-gray-600 group-hover:scale-110 transition-transform"></i>
                         <span class="ml-2 group-hover:translate-x-1 transition-transform">Chats</span>

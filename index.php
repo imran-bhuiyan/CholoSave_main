@@ -1,4 +1,4 @@
-<?php include 'includes/header.php'; ?>
+<?php include 'includes/new_header.php'; ?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.tailwindcss.com" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/test_project/assets/css/style.css">
+    <!-- <link rel="stylesheet" href="/test_project/assets/css/style.css"> -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <title>CholoSave</title>
 </head>
@@ -32,7 +32,7 @@
                     <img src="4.jpg" alt="Slide 1" class="w-full h-full object-cover">
                     <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
                         <div class="text-center text-white px-4">
-                            <h1 class="text-5xl font-bold mb-4">Welcome to Our Platform</h1>
+                            <h1 class="text-5xl font-bold mb-4">Welcome to CholoSave</h1>
                             <p class="text-xl mb-8">Discover amazing possibilities with us</p>
                             <a href="/test_project/register.php" class="inline-block">
                                 <button
@@ -195,7 +195,7 @@
                     </div>
                 </section>
 
-                <!-- CTA Section -->
+                
                 <!-- Stats Section -->
                 <section class="py-20 bg-gradient-to-r from-blue-600 to-blue-800">
                     <div class="max-w-7xl mx-auto px-4">
@@ -329,7 +329,7 @@
 
     </main>
 
-    <?php include 'includes/footer.php'; ?>
+    <?php include 'includes/test_footer.php'; ?>
 </body>
 
 </html>

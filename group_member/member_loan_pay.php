@@ -79,6 +79,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("Execute failed: " . $update_stmt->error);
             }
 
+             // Update emergency_fund in my_group table
+             $update_emergency_fund = $conn->prepare("
+             UPDATE my_group 
+             SET emergency_fund = COALESCE(emergency_fund, 0) + ? 
+             WHERE group_id = ?
+         ");
+
+         if ($update_emergency_fund === false) {
+             throw new Exception("Prepare failed for emergency fund update: " . $conn->error);
+         }
+
+         $update_emergency_fund->bind_param('di', $total_amount, $group_id);
+
+         if (!$update_emergency_fund->execute()) {
+             throw new Exception("Execute failed for emergency fund update: " . $update_emergency_fund->error);
+         }
+
             // Commit the transaction
             $conn->commit();
 

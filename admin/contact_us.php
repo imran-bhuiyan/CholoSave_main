@@ -1,285 +1,264 @@
 <?php
-include 'db.php';
 session_start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: ../login.php");
+    header("Location: /test_project/error_page.php");
     exit;
 }
 
-// Fetch all contact messages with their replies
-$query = "SELECT c.*, 
-          GROUP_CONCAT(r.body SEPARATOR '|||') as replies,
-          GROUP_CONCAT(r.created_at SEPARATOR '|||') as reply_dates,
-          GROUP_CONCAT(u.name SEPARATOR '|||') as reply_names
-          FROM contact_us c
-          LEFT JOIN replies r ON c.id = r.question_id
-          LEFT JOIN users u ON r.user_id = u.id
-          GROUP BY c.id
-          ORDER BY c.created_at DESC";
-$result = $conn->query($query);
-$messages = $result->fetch_all(MYSQLI_ASSOC);
+if (!isset($conn)) {
+    include 'db.php';
+}
 
-// Handle message deletion
-if (isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['message_id'])) {
+// Handle mark as done action
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_done'])) {
     $message_id = $_POST['message_id'];
     
-    // First delete associated replies
-    $delete_replies = "DELETE FROM replies WHERE question_id = ?";
-    $stmt = $conn->prepare($delete_replies);
-    $stmt->bind_param("i", $message_id);
-    $stmt->execute();
-    
-    // Then delete the message
-    $delete_query = "DELETE FROM contact_us WHERE id = ?";
-    $stmt = $conn->prepare($delete_query);
-    $stmt->bind_param("i", $message_id);
-    
-    if ($stmt->execute()) {
-        header("Location: contact_us.php?deleted=1");
-        exit();
+    $updateQuery = "UPDATE contact_us SET status = 'done' WHERE id = ?";
+    if ($stmt = $conn->prepare($updateQuery)) {
+        $stmt->bind_param('i', $message_id);
+        if ($stmt->execute()) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update status']);
+        }
+        exit;
     }
 }
 
-// Handle saving reply
-if (isset($_POST['action']) && $_POST['action'] === 'reply') {
-    $message_id = $_POST['message_id'];
-    $reply_text = $_POST['reply_message'];
-    $admin_id = $_SESSION['user_id'];
-    
-    $reply_query = "INSERT INTO replies (question_id, user_id, body) VALUES (?, ?, ?)";
-    $stmt = $conn->prepare($reply_query);
-    $stmt->bind_param("iis", $message_id, $admin_id, $reply_text);
-    
-    if ($stmt->execute()) {
-        header("Location: contact_us.php?reply_sent=1");
-        exit();
-    } else {
-        header("Location: contact_us.php?reply_error=1");
-        exit();
+// Handle filtering
+$status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
+$where_clause = $status_filter !== 'all' ? "WHERE status = '$status_filter'" : "";
+
+// Fetch filtered contact messages
+$query = "SELECT * FROM contact_us $where_clause ORDER BY created_at DESC";
+$result = $conn->query($query);
+$messages = [];
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $messages[] = $row;
     }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Messages - CholoSave</title>
+    <title>Contact Messages</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .message-cell {
+            max-width: 300px;
+            position: relative;
+        }
+
+        .message-content {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .message-tooltip {
+            display: none;
+            position: absolute;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            z-index: 50;
+            width: 400px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            left: 0;
+            top: 100%;
+        }
+
+        .message-content:hover .message-tooltip {
+            display: block;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100 custom-font dark:bg-gray-900 transition-colors duration-200">
+<body class="bg-gradient-to-br from-white-50 to-blue-100 min-h-screen">
     <div class="flex h-screen">
         <?php include 'sidebar.php'; ?>
 
         <div class="flex-1 flex flex-col overflow-hidden">
-            <!-- Header -->
-            <header class="flex items-center justify-between p-4 bg-white shadow dark:bg-gray-800">
-                <h1 class="text-2xl font-semibold dark:text-white">
-                    <i class="fas fa-envelope mr-2"></i>Contact Messages
-                </h1>
-                <button id="darkModeToggle" class="p-2 hover:bg-gray-100 rounded-full dark:hover:bg-gray-700">
-                    <i class="fas fa-moon dark:text-white"></i>
-                </button>
+            <header class="glass-effect shadow-sm border-b border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <div class="flex items-center justify-between">
+                        <h1 class="text-2xl font-semibold text-gray-800">
+                            <i class="fa-solid fa-envelope text-blue-600 mr-3"></i>
+                            Contact Messages
+                        </h1>
+                        <div class="flex gap-2">
+                            <a href="?status=all" class="px-4 py-2 rounded-md <?php echo $status_filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'; ?> hover:bg-blue-700 hover:text-white transition-colors">
+                                All
+                            </a>
+                            <a href="?status=pending" class="px-4 py-2 rounded-md <?php echo $status_filter === 'pending' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'; ?> hover:bg-blue-700 hover:text-white transition-colors">
+                                Pending
+                            </a>
+                            <a href="?status=done" class="px-4 py-2 rounded-md <?php echo $status_filter === 'done' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'; ?> hover:bg-blue-700 hover:text-white transition-colors">
+                                Done
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </header>
 
-            <!-- Main Content -->
-            <main class="flex-1 overflow-y-auto p-6">
-                <?php if (isset($_GET['deleted'])): ?>
-                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6">
-                        Message deleted successfully!
-                    </div>
-                <?php endif; ?>
-
-                <?php if (isset($_GET['reply_sent'])): ?>
-                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6">
-                        Reply sent successfully!
-                    </div>
-                <?php endif; ?>
-
-                <?php if (isset($_GET['reply_error'])): ?>
-                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
-                        Error sending reply. Please try again.
-                    </div>
-                <?php endif; ?>
-
-                <!-- Messages Grid -->
-                <div class="grid gap-6">
-                    <?php foreach ($messages as $message): ?>
-                        <div class="bg-white rounded-lg shadow-md overflow-hidden dark:bg-gray-800">
-                            <div class="p-6">
-                                <div class="flex justify-between items-start mb-4">
-                                    <div>
-                                        <h3 class="text-lg font-semibold dark:text-white">
-                                            <?php echo htmlspecialchars($message['name']); ?>
-                                        </h3>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">
-                                            <i class="fas fa-envelope mr-2"></i>
-                                            <?php echo htmlspecialchars($message['email']); ?>
-                                        </p>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">
-                                            <i class="fas fa-clock mr-2"></i>
-                                            <?php echo date('F j, Y g:i A', strtotime($message['created_at'])); ?>
-                                        </p>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <button onclick="openReplyModal(<?php echo $message['id']; ?>)"
-                                                class="p-2 text-blue-600 hover:bg-blue-50 rounded-full dark:hover:bg-blue-900">
-                                            <i class="fas fa-reply"></i>
-                                        </button>
-                                        <button onclick="deleteMessage(<?php echo $message['id']; ?>)"
-                                                class="p-2 text-red-600 hover:bg-red-50 rounded-full dark:hover:bg-red-900">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="prose dark:prose-invert max-w-none">
-                                    <p class="text-gray-700 dark:text-gray-300">
-                                        <?php echo nl2br(htmlspecialchars($message['description'])); ?>
-                                    </p>
-                                </div>
-
-                                <!-- Display Replies -->
-                                <?php if (!empty($message['replies'])): 
-                                    $replies = explode('|||', $message['replies']);
-                                    $reply_dates = explode('|||', $message['reply_dates']);
-                                    $reply_names = explode('|||', $message['reply_names']);
-                                ?>
-                                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                        <h4 class="text-lg font-semibold mb-3 dark:text-white">Replies</h4>
-                                        <?php for($i = 0; $i < count($replies); $i++): ?>
-                                            <div class="mb-3 pl-4 border-l-2 border-indigo-500">
-                                                <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                                                    <span class="font-medium"><?php echo htmlspecialchars($reply_names[$i]); ?></span>
-                                                    <span class="mx-2">•</span>
-                                                    <span><?php echo date('F j, Y g:i A', strtotime($reply_dates[$i])); ?></span>
-                                                </div>
-                                                <p class="text-gray-700 dark:text-gray-300">
-                                                    <?php echo nl2br(htmlspecialchars($replies[$i])); ?>
-                                                </p>
-                                            </div>
-                                        <?php endfor; ?>
-                                    </div>
-                                <?php endif; ?>
+            <div class="flex-1 overflow-y-auto p-6">
+                <div class="max-w-7xl mx-auto">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="p-6">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead>
+                                        <tr class="bg-gray-50">
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Serial
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Name
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Email
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Message
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Date
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Status
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Action
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <?php
+                                        $serial = 1;
+                                        foreach ($messages as $message):
+                                            $date = new DateTime($message['created_at']);
+                                        ?>
+                                            <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <?php echo $serial++; ?>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                    <?php echo htmlspecialchars($message['name']); ?>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <?php echo htmlspecialchars($message['email']); ?>
+                                                </td>
+                                                <td class="px-6 py-4 text-sm text-gray-500 message-cell">
+                                                    <div class="message-content">
+                                                        <div class="truncate">
+                                                            <?php echo htmlspecialchars($message['description']); ?>
+                                                        </div>
+                                                        <div class="message-tooltip">
+                                                            <?php echo nl2br(htmlspecialchars($message['description'])); ?>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <?php echo $date->format('d F, Y'); ?>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                        <?php echo $message['status'] === 'done' 
+                                                            ? 'bg-green-100 text-green-800' 
+                                                            : 'bg-yellow-100 text-yellow-800'; ?>">
+                                                        <?php echo ucfirst($message['status']); ?>
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <?php if ($message['status'] !== 'done'): ?>
+                                                        <button onclick="confirmMarkAsDone(<?php echo $message['id']; ?>)"
+                                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                                                            <i class="fas fa-check mr-2"></i> Mark as Done
+                                                        </button>
+                                                    <?php endif; ?>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                        <?php if (empty($messages)): ?>
+                                            <tr>
+                                                <td colspan="7" class="px-6 py-10 text-center text-gray-500">
+                                                    <i class="fas fa-inbox text-4xl mb-4"></i>
+                                                    <p>No messages found</p>
+                                                </td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                    </div>
                 </div>
-            </main>
-        </div>
-    </div>
-
-    <!-- Reply Modal -->
-    <div id="replyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
-        <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold">Reply to Message</h2>
-                <button onclick="closeReplyModal()" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
-            <form id="replyForm" method="POST" action="contact_us.php">
-                <input type="hidden" name="action" value="reply">
-                <input type="hidden" name="message_id" id="reply_message_id">
-                
-                <div class="mb-4">
-                    <label for="reply_message" class="block text-sm font-medium text-gray-700 mb-2">
-                        Your Reply
-                    </label>
-                    <textarea id="reply_message" name="reply_message" rows="6" required
-                              class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200"></textarea>
-                </div>
-                
-                <div class="flex justify-end gap-3">
-                    <button type="button" onclick="closeReplyModal()"
-                            class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                            class="px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
-                        Send Reply
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 
     <script>
-        function openReplyModal(messageId) {
-            document.getElementById('reply_message_id').value = messageId;
-            document.getElementById('replyModal').classList.remove('hidden');
-            document.getElementById('replyModal').classList.add('flex');
-        }
-        
-        function closeReplyModal() {
-            document.getElementById('replyModal').classList.add('hidden');
-            document.getElementById('replyModal').classList.remove('flex');
-            document.getElementById('replyForm').reset();
-        }
-        
-        function deleteMessage(messageId) {
+        function confirmMarkAsDone(messageId) {
             Swal.fire({
-                title: 'Are you sure?',
-                text: "This action cannot be undone!",
-                icon: 'warning',
+                title: 'Mark as Done?',
+                text: "Are you sure you want to mark this message as done?",
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, delete it!'
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, mark as done!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = 'contact_us.php';
-                    
-                    const actionInput = document.createElement('input');
-                    actionInput.type = 'hidden';
-                    actionInput.name = 'action';
-                    actionInput.value = 'delete';
-                    
-                    const messageInput = document.createElement('input');
-                    messageInput.type = 'hidden';
-                    messageInput.name = 'message_id';
-                    messageInput.value = messageId;
-                    
-                    form.appendChild(actionInput);
-                    form.appendChild(messageInput);
-                    document.body.appendChild(form);
-                    form.submit();
+                    const formData = new FormData();
+                    formData.append('mark_done', true);
+                    formData.append('message_id', messageId);
+
+                    fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire(
+                                'Marked as Done!',
+                                'The message has been marked as done.',
+                                'success'
+                            ).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                'Something went wrong.',
+                                'error'
+                            );
+                        }
+                    });
                 }
             });
         }
-
-        // Dark mode toggle
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        darkModeToggle.addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            const icon = darkModeToggle.querySelector('i');
-            icon.classList.toggle('fa-moon');
-            icon.classList.toggle('fa-sun');
-        });
-
-        // Close modal when clicking outside
-        document.getElementById('replyModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('replyModal')) {
-                closeReplyModal();
-            }
-        });
-
-        // Auto-hide alerts after 3 seconds
-        document.addEventListener('DOMContentLoaded', function() {
-            const alerts = document.querySelectorAll('.bg-green-100, .bg-red-100');
-            alerts.forEach(alert => {
-                setTimeout(() => {
-                    alert.style.display = 'none';
-                }, 3000);
-            });
-        });
     </script>
 </body>
 </html>
+
+<?php include 'new_footer.php'; ?>

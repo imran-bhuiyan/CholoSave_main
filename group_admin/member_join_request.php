@@ -25,7 +25,7 @@ if ($stmt = $conn->prepare($checkAdminQuery)) {
     $stmt->bind_result($group_admin_id, $group_name);
     $stmt->fetch();
     $stmt->close();
-    
+
     if ($group_admin_id === $user_id) {
         $is_admin = true;
     }
@@ -95,22 +95,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 $stmt->close();
             }
 
-//             // Ensure the record exists in my_savings
-// $ensureRecordQuery = "
-// INSERT IGNORE INTO my_savings (group_id, user_id, total_amount)
-// VALUES (?, ?, 0.00)
-// ";
-// if ($stmt = $conn->prepare($ensureRecordQuery)) {
-// $stmt->bind_param('ii', $group_id, $user_id_to_update);
-// $stmt->execute();
-// $stmt->close();
-// }
-             
+            // Add 5 points to the leaderboard
+            $updateLeaderboardQuery = "UPDATE leaderboard SET points = points + 5 WHERE group_id = ?";
+            if ($stmt = $conn->prepare($updateLeaderboardQuery)) {
+                $stmt->bind_param('i', $group_id);
+                $stmt->execute();
+                $stmt->close();
+            }
+
 
             // Create approval notification for the user
             $notificationTitleUser = "Join Request Approved";
             $notificationMessageUser = "Your request to join the group '$group_name' has been approved. Welcome to the group!";
-            
+
             $insertNotificationQuery = "
                 INSERT INTO notifications (
                     target_user_id,
@@ -121,9 +118,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     status
                 ) VALUES (?, NULL, 'join_request', ?, ?, 'unread')
             ";
-            
+
             if ($stmt = $conn->prepare($insertNotificationQuery)) {
-                $stmt->bind_param('iss', 
+                $stmt->bind_param(
+                    'iss',
                     $user_id_to_update,
                     $notificationTitleUser,
                     $notificationMessageUser
@@ -135,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             // Create approval notification for the group
             $notificationTitleGroup = "New Member Joined";
             $notificationMessageGroup = "A new member has joined your group '$group_name'.";
-            
+
             $insertGroupNotificationQuery = "
                 INSERT INTO notifications (
                     target_user_id,
@@ -146,9 +144,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     status
                 ) VALUES (NULL, ?, 'join_request', ?, ?, 'unread')
             ";
-            
+
             if ($stmt = $conn->prepare($insertGroupNotificationQuery)) {
-                $stmt->bind_param('iss', 
+                $stmt->bind_param(
+                    'iss',
                     $group_id,
                     $notificationTitleGroup,
                     $notificationMessageGroup
@@ -169,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             // Create rejection notification for the user
             $notificationTitleRejection = "Join Request Declined";
             $notificationMessageRejection = "Your request to join the group '$group_name' has been declined.";
-            
+
             $insertNotificationQuery = "
                 INSERT INTO notifications (
                     target_user_id,
@@ -180,9 +179,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     status
                 ) VALUES (?, NULL, 'join_request', ?, ?, 'unread')
             ";
-            
+
             if ($stmt = $conn->prepare($insertNotificationQuery)) {
-                $stmt->bind_param('iss', 
+                $stmt->bind_param(
+                    'iss',
                     $user_id_to_update,
                     $notificationTitleRejection,
                     $notificationMessageRejection
@@ -194,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
         // Commit transaction
         $conn->commit();
-        
+
         echo "<script>
                 window.location.href = 'member_join_request.php';
               </script>";
@@ -212,6 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -223,6 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         body {
             font-family: 'Inter', sans-serif;
         }
+
         .glass-effect {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -230,6 +232,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         }
     </style>
 </head>
+
 <body class="bg-gradient-to-br from-white-50 to-blue-100 min-h-screen">
     <div class="flex h-screen">
         <!-- Sidebar -->
@@ -260,7 +263,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-gradient-to-r from-blue-50 to-blue-50">
                             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                                 <div class="text-sm font-medium text-gray-500">Pending Requests</div>
-                                <div class="mt-2 text-3xl font-semibold text-blue-600"><?php echo count($joinRequests); ?></div>
+                                <div class="mt-2 text-3xl font-semibold text-blue-600">
+                                    <?php echo count($joinRequests); ?></div>
                             </div>
                             <!-- Add more stats cards as needed -->
                         </div>
@@ -271,47 +275,57 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead>
                                         <tr class="bg-gray-50">
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serial</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Join Request Date</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Serial</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Username</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Join Request Date</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
-                                        <?php 
+                                        <?php
                                         $serial = 1;
-                                        foreach ($joinRequests as $request): 
-                                        ?>
-                                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo $serial++; ?></td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                <?php echo htmlspecialchars($request['username']); ?>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                <?php echo date('d M Y', strtotime($request['join_request_date'])); ?>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <form method="POST" class="flex space-x-2">
-                                                    <input type="hidden" name="user_id" value="<?php echo $request['user_id']; ?>">
-                                                    <button type="submit" name="action" value="approve"
-                                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
-                                                        <i class="fas fa-check mr-2"></i> Approve
-                                                    </button>
-                                                    <button type="submit" name="action" value="reject"
-                                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
-                                                        <i class="fas fa-times mr-2"></i> Reject
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
+                                        foreach ($joinRequests as $request):
+                                            ?>
+                                            <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <?php echo $serial++; ?></td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                    <?php echo htmlspecialchars($request['username']); ?>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <?php echo date('d M Y', strtotime($request['join_request_date'])); ?>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <form method="POST" class="flex space-x-2">
+                                                        <input type="hidden" name="user_id"
+                                                            value="<?php echo $request['user_id']; ?>">
+                                                        <button type="submit" name="action" value="approve"
+                                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                                                            <i class="fas fa-check mr-2"></i> Approve
+                                                        </button>
+                                                        <button type="submit" name="action" value="reject"
+                                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
+                                                            <i class="fas fa-times mr-2"></i> Reject
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($joinRequests)): ?>
-                                        <tr>
-                                            <td colspan="4" class="px-6 py-10 text-center text-gray-500">
-                                                <i class="fas fa-inbox text-4xl mb-4"></i>
-                                                <p>No pending join requests</p>
-                                            </td>
-                                        </tr>
+                                            <tr>
+                                                <td colspan="4" class="px-6 py-10 text-center text-gray-500">
+                                                    <i class="fas fa-inbox text-4xl mb-4"></i>
+                                                    <p>No pending join requests</p>
+                                                </td>
+                                            </tr>
                                         <?php endif; ?>
                                     </tbody>
                                 </table>
@@ -325,11 +339,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
     <script>
         // Menu toggle for mobile
-        document.getElementById('menu-button').addEventListener('click', function() {
+        document.getElementById('menu-button').addEventListener('click', function () {
             const sidebar = document.querySelector('.sidebar');
             sidebar.classList.toggle('-translate-x-full');
         });
     </script>
 </body>
+
 </html>
 <?php include 'new_footer.php'; ?>

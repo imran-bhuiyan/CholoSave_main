@@ -186,35 +186,45 @@ try {
                             <i class="fas fa-arrow-up text-green-500 mr-3"></i>
                             <span>Total Contributions</span>
                         </div>
-                        <span
-                            class="font-semibold">$<?= number_format($portfolio['total_group_contributions'], 2) ?></span>
+                        <span class="font-semibold">$<?= number_format($portfolio['total_group_contributions'], 2) ?></span>
                     </div>
                 </div>
             </div>
 
-            <!-- Quick Actions -->
+            <!-- Quick Actions - Updated Style -->
             <div class="bg-white rounded-xl shadow-md p-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <a href="/test_project/groups.php"
-                        class="flex items-center justify-center p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                        <i class="fas fa-plus mr-2"></i>
-                        Join groups
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-bolt mr-2 text-slate-600"></i>
+                    Quick Actions
+                </h2>
+                <div class="space-y-3">
+                    <a href="/test_project/groups.php" class="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                        <div class="flex items-center">
+                            <i class="fas fa-plus text-blue-600 mr-3"></i>
+                            <span class="font-medium">Join Groups</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
                     </a>
-                    <a href="/test_project/leaderboard.php"
-                        class="flex items-center justify-center p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
-                        <i class="fas fa-trophy mr-2"></i>
-                        Leaderboard
+                    <a href="/test_project/leaderboard.php" class="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                        <div class="flex items-center">
+                            <i class="fas fa-trophy text-amber-600 mr-3"></i>
+                            <span class="font-medium">Leaderboard</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
                     </a>
-                    <a href="/test_project/details_portfolio.php"
-                        class="flex items-center justify-center p-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        Details
+                    <a href="/test_project/details_portfolio.php" class="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-purple-600 mr-3"></i>
+                            <span class="font-medium">View Details</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
                     </a>
-                    <a href="/test_project/forum.php"
-                        class="flex items-center justify-center p-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                        <i class="fas fa-comments mr-2"></i>
-                        Forum
+                    <a href="/test_project/forum.php" class="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                        <div class="flex items-center">
+                            <i class="fas fa-comments text-slate-600 mr-3"></i>
+                            <span class="font-medium">Forum</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
                     </a>
                 </div>
             </div>
@@ -234,8 +244,7 @@ try {
                             <?php foreach ($investments as $investment): ?>
                                 <li class="flex justify-between items-center p-2 bg-white rounded-md">
                                     <span class="text-gray-600"><?= htmlspecialchars($investment['investment_type']) ?></span>
-                                    <span
-                                        class="font-semibold text-gray-800">$<?= number_format($investment['total_invested'], 2) ?></span>
+                                    <span class="font-semibold text-gray-800">$<?= number_format($investment['total_invested'], 2) ?></span>
                                 </li>
                             <?php endforeach; ?>
                         </ul>
@@ -247,7 +256,6 @@ try {
 
     <footer>
         <?php include 'includes/new_footer.php'; ?>
-
     </footer>
 </body>
 

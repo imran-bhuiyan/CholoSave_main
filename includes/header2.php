@@ -201,13 +201,14 @@
 
                     <!-- Notifications -->
                     <div class="relative">
-    <a href="/test_project/notification.php" class="nav-item flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-gray-900">
-        <div class="relative">
-            <i class="fas fa-bell text-lg"></i>
-            <span class="notification-badge">3</span>
-        </div>
-    </a>
-</div>
+                        <a href="/test_project/notification.php"
+                            class="nav-item flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-gray-900">
+                            <div class="relative">
+                                <i class="fas fa-bell text-lg"></i>
+                                <span class="notification-badge">3</span>
+                            </div>
+                        </a>
+                    </div>
 
 
                     <!-- Profile Section -->
