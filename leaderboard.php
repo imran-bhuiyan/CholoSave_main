@@ -1,6 +1,7 @@
 <?php
-require_once 'db.php';
-include 'includes/header2.php';
+session_start();
+include 'db.php'; // Include the database connection
+include 'includes/header2.php'; // Include the header file
 
 // Get sort parameters
 $sort = isset($_GET['sort']) ? $_GET['sort'] : 'points';

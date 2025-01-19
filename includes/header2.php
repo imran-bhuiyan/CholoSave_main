@@ -1,3 +1,37 @@
+<?php
+include 'db.php';  
+$user_id = $_SESSION['user_id'];
+
+$notificationCount = 0;
+
+// Get notification count for current user using conn
+$sql = "SELECT COUNT(*) as count FROM notifications WHERE target_user_id = ? AND status = 'unread'";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$row = $result->fetch_assoc();
+$notificationCount = $row['count'];
+
+// Get user information including profile picture
+$user_name = '';
+$user_email = '';
+$profile_picture = '';
+$sql_user = "SELECT name, email, profile_picture FROM users WHERE id = ?";
+$stmt = $conn->prepare($sql_user);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result_user = $stmt->get_result();
+
+if ($result_user) {
+    $user_data = $result_user->fetch_assoc();
+    $user_name = $user_data['name'];
+    $user_email = $user_data['email'];
+    $profile_picture = $user_data['profile_picture'];
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -124,6 +158,7 @@
             animation: glow 2s infinite;
             color: #ffd700;
         }
+
     </style>
 </head>
 
@@ -201,56 +236,67 @@
 
                     <!-- Notifications -->
                     <div class="relative">
-                        <a href="/test_project/notification.php"
-                            class="nav-item flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-gray-900">
-                            <div class="relative">
-                                <i class="fas fa-bell text-lg"></i>
-                                <span class="notification-badge">3</span>
-                            </div>
-                        </a>
-                    </div>
-
+    <a href="/test_project/notification.php" class="nav-item flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-gray-900">
+        <div class="relative">
+            <i class="fas fa-bell text-lg"></i>
+            <?php if ($notificationCount > 0): ?>
+                <span class="notification-badge"><?php echo $notificationCount; ?></span>
+            <?php endif; ?>
+        </div>
+    </a>
+</div>
 
                     <!-- Profile Section -->
                     <div class="relative group">
-                        <button
-                            class="flex items-center space-x-3 px-3 py-2 rounded-full hover:bg-gray-100 transition-colors duration-200">
+                        <button class="flex items-center space-x-3 px-3 py-2 rounded-full hover:bg-gray-100 transition-colors duration-200">
                             <div class="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-200">
-                                <img src="logo.png" alt="Profile" class="w-full h-full object-cover">
+                                <?php if (!empty($profile_picture) && file_exists('uploads/profile/' . $profile_picture)): ?>
+                                    <img src="uploads/profile/<?php echo htmlspecialchars($profile_picture); ?>" 
+                                         alt="Profile" 
+                                         class="w-full h-full object-cover">
+                                <?php else: ?>
+                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                                        <i class="fas fa-user text-gray-400"></i>
+                                    </div>
+                                <?php endif; ?>
                             </div>
-
+                            <span class="text-sm font-medium text-gray-700"><?php echo htmlspecialchars($user_name); ?></span>
                             <i class="fas fa-chevron-down text-sm text-gray-500"></i>
                         </button>
 
-                        <div
-                            class="absolute right-0 w-64 mt-2 bg-white rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform -translate-y-2 group-hover:translate-y-0">
-                            <!-- <div class="p-4 border-b border-gray-100">
+                        <div class="absolute right-0 w-64 mt-2 bg-white rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform -translate-y-2 group-hover:translate-y-0">
+                            <div class="p-4 border-b border-gray-100">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-14 h-14 rounded-full overflow-hidden ring-2 ring-gray-200">
-                                        <img src="https://via.placeholder.com" alt="Profile" class="w-full h-full object-cover">
+                                        <?php if (!empty($profile_picture) && file_exists('uploads/profile/' . $profile_picture)): ?>
+                                            <img src="uploads/profile/<?php echo htmlspecialchars($profile_picture); ?>" 
+                                                 alt="Profile" 
+                                                 class="w-full h-full object-cover">
+                                        <?php else: ?>
+                                            <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                                                <i class="fas fa-user text-gray-400"></i>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                     <div>
-                                        <p class="font-semibold text-gray-800">Username</p>
-                                        <p class="text-sm text-gray-500">user@email.com</p>
+                                        <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($user_name); ?></p>
+                                        <p class="text-sm text-gray-500"><?php echo htmlspecialchars($user_email); ?></p>
                                     </div>
                                 </div>
-                            </div> -->
+                            </div>
 
                             <div class="py-2">
-                                <a href="/test_project/profile.php"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-500 transition-colors duration-200">
+                                <a href="/test_project/profile.php" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-500 transition-colors duration-200">
                                     <i class="fas fa-user-circle w-5 h-5 mr-3"></i>
                                     My Profile
                                 </a>
                                 <div class="border-t border-gray-100 my-1"></div>
-                                <a href="/test_project/logout.php"
-                                    class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200">
+                                <a href="/test_project/logout.php" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200">
                                     <i class="fas fa-sign-out-alt w-5 h-5 mr-3"></i>
                                     Logout
                                 </a>
                             </div>
                         </div>
-                    </div>
                 </div>
             </div>
         </div>
