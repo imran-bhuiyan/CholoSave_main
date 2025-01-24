@@ -1,11 +1,47 @@
+<?php
+// session_start();
+
+if (!isset($_SESSION['group_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+include 'db.php'; // Your database connection file
+
+$group_id = $_SESSION['group_id'];
+$query = "SELECT group_name FROM my_group WHERE group_id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $group_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$group_name = ($row = $result->fetch_assoc()) ? $row['group_name'] : 'My Group';
+$stmt->close();
+
+// echo'groupname is '.$group_name;
+?>
+
 <!-- Enhanced Sidebar -->
 <div id="sidebar" class="hidden md:flex flex-col w-64 bg-white shadow-lg transition-all duration-300 ease-in-out">
     <!-- Logo Section -->
-    <div class="p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
+    <!-- <div class="p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
         <div class="flex items-center space-x-2 cursor-pointer">
             <i class="fas fa-leaf text-white-500 transform hover:scale-110 transition-transform"></i>
             <span
                 class="text-xl font-semibold bg-gradient-to-r from-green-500 to-blue-700 bg-clip-text text-transparent">CholoSave</span>
+        </div>
+    </div> -->
+
+
+    <!-- Profile Section -->
+    <div class="p-4 border-b border-gray-200 flex items-center space-x-4">
+        <div
+            class="w-12 h-12 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+            <i class="fas fa-user text-white text-2xl"></i>
+        </div>
+        <div>
+            <span class="font-semibold text-black-800"><?php echo htmlspecialchars($group_name); ?></span>
+            <p class="text-xs text-gray-500">Group Member</p>
         </div>
     </div>
 
@@ -18,6 +54,13 @@
                 <i class="fas fa-chart-line w-6 text-white-600 group-hover:scale-110 transition-transform"></i>
                 <span class="ml-2 group-hover:translate-x-1 transition-transform">Dashboard</span>
             </a>
+
+            <a href="/test_project/group_member/group_notifications.php"
+                class="sidebar-item group flex items-center p-3 text-gray-600 rounded-lg hover:bg-white-50 transition-all duration-200">
+                <i class="fas fa-bell w-6 text-white-600 group-hover:scale-110 transition-transform"></i>
+                <span class="ml-2 group-hover:translate-x-1 transition-transform">Notifications</span>
+            </a>
+
 
             <a href="/test_project/group_member/group_member_emergency_loan_req.php"
                 class="sidebar-item group flex items-center p-3 text-gray-600 rounded-lg hover:bg-white-50 transition-all duration-200">
@@ -33,7 +76,7 @@
                     id="unreadCount">0</span>
             </a>
 
-            <!-- Repeat pattern for other menu items -->
+
             <a href="/test_project/group_member/group_member_list.php"
                 class="sidebar-item group flex items-center p-3 text-gray-600 rounded-lg hover:bg-white-50 transition-all duration-200">
                 <i class="fas fa-users w-6 text-white-600 group-hover:scale-110 transition-transform"></i>
@@ -88,7 +131,7 @@
                 <span class="ml-2 group-hover:translate-x-1 transition-transform">Investment Details</span>
             </a>
 
-            
+
             <a href="/test_project/group_member/group_generate_report.php"
                 class="sidebar-item group flex items-center p-3 text-gray-600 rounded-lg hover:bg-white-50 transition-all duration-200">
                 <i class="fa-solid fa-file-lines w-6 text-white-600 group-hover:scale-110 transition-transform"></i>

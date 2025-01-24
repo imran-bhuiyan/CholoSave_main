@@ -1,3 +1,29 @@
+<?php
+// session_start();
+
+if (!isset($_SESSION['group_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+include 'db.php'; // Your database connection file
+
+$group_id = $_SESSION['group_id'];
+$query = "SELECT group_name FROM my_group WHERE group_id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $group_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$group_name = ($row = $result->fetch_assoc()) ? $row['group_name'] : 'My Group';
+$stmt->close();
+
+// echo'groupname is '.$group_name;
+?>
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -14,11 +40,23 @@
     <!-- Enhanced Sidebar -->
     <div id="sidebar" class="hidden md:flex flex-col w-64 bg-white shadow-lg transition-all duration-300 ease-in-out">
         <!-- Logo Section -->
-        <div class="p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
+        <!-- <div class="p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
             <div class="flex items-center space-x-2 cursor-pointer">
                 <i class="fas fa-leaf text-green-500 transform hover:scale-110 transition-transform"></i>
                 <span
                     class="text-xl font-semibold bg-gradient-to-r from-green-500 to-blue-700 bg-clip-text text-transparent">CholoSave</span>
+            </div>
+        </div> -->
+
+        <!-- Profile Section -->
+        <div class="p-4 border-b border-gray-200 flex items-center space-x-4">
+            <div
+                class="w-12 h-12 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                <i class="fas fa-user text-white text-2xl"></i>
+            </div>
+            <div>
+                <span class="font-semibold text-black-800"><?php echo htmlspecialchars($group_name); ?></span>
+                <p class="text-xs text-gray-500">Group Admin</p>
             </div>
         </div>
 
@@ -31,6 +69,23 @@
                     <i class="fas fa-chart-line w-6 text-gray-600 group-hover:scale-110 transition-transform"></i>
                     <span class="ml-2 group-hover:translate-x-1 transition-transform">Dashboard</span>
                 </a>
+
+
+                <!-- Notifications -->
+                <div class="relative">
+                    <a href="/test_project/group_admin/group_notifications.php"
+                        class="sidebar-item group flex items-center p-3 text-gray-600 rounded-lg hover:bg-gray-50 transition-all duration-200">
+                        <div class="relative">
+                            <i class="fas fa-bell w-6 text-gray-600 group-hover:scale-110 transition-transform"></i>
+                            <span id="notification-badge" class="absolute -top-2 -right-2 inline-flex items-center justify-center w-5 h-5 
+                                       text-xs font-bold text-white bg-blue-500 rounded-full border-2 border-white
+                                       opacity-0 transition-all duration-300 ease-in-out">
+                                0
+                            </span>
+                        </div>
+                        <span class="ml-3 group-hover:translate-x-1 transition-transform">Notifications</span>
+                    </a>
+                </div>
 
                 <!-- Financial Management Section -->
                 <div class="pt-4">
@@ -370,6 +425,10 @@
                                 Swal.showLoading();
                             }
                         });
+
+
+
+
 
                         // Send leave request to server
                         fetch('/test_project/group_admin/process_admin_leave_request.php', {

@@ -77,12 +77,12 @@ if ($stmt = $conn->prepare($memberQuery)) {
         <div class="flex-1 overflow-hidden">
             <!-- Header -->
             <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-center">
                     <div class="flex items-center">
                         <button id="menu-button" class="md:hidden mr-4 text-gray-600 hover:text-gray-900">
                             <i class="fa-solid fa-bars text-xl"></i>
                         </button>
-                        <h1 class="text-2xl font-semibold text-gray-800 m ml-96">
+                        <h1 class="text-2xl font-semibold text-gray-800">
                             <i class="fa-solid fa-users mr-2 text-blue-600"></i>
                             Group Members
                         </h1>

@@ -190,15 +190,18 @@ if ($joinedGroupsResult) {
         }
 
         .primary-button {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-        }
+    background-color: rgb(0, 42, 196);
+    transition: background-color 0.3s ease;
+}
 
-        .primary-button:hover {
-            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-        }
+.primary-button:hover {
+    background-color: #333;
+}
+
+
 
         .secondary-button {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
         }
 
         .secondary-button:hover {

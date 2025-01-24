@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return '$' + value.toLocaleString('en-US');
+                            return 'BDT ' + value.toLocaleString('en-US');
                         }
                     },
                     grid: {

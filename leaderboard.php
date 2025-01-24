@@ -45,7 +45,7 @@ $result = mysqli_query($conn, $query);
 </head>
 
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-8 mt-16">
         <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-2">
@@ -138,7 +138,7 @@ $result = mysqli_query($conn, $query);
             </div>
 
             <!-- Side Rules -->
-            <div class="lg:w-1/4">
+            <div class="lg:w-1/4 mt-16">
                 <div class="bg-white rounded-xl shadow-lg p-4 sticky top-4">
                     <div class="flex items-center mb-4">
                         <i class="fas fa-star text-yellow-500 text-xl mr-2"></i>

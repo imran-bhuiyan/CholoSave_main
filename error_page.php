@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Vision - CholoSave</title>
+    <title>Page Not Found - CholoSave</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -13,19 +12,33 @@
         }
     </style>
 </head>
-
-
-<div class="flex items-center flex-col justify-center lg:flex-row py-28 px-6 md:px-24 md:py-20 lg:py-32 gap-16 lg:gap-28">
+<body class="bg-gray-100 dark:bg-gray-900">
+    <main class="min-h-screen flex items-center justify-center">
+        <div class="flex items-center flex-col lg:flex-row py-12 px-6 md:px-24 gap-16 lg:gap-28 max-w-6xl mx-auto">
             <div class="w-full lg:w-1/2">
-                <img class="hidden lg:block" src="https://i.ibb.co/v30JLYr/Group-192-2.png" />
-                <img class="hidden md:block lg:hidden" src="https://i.ibb.co/c1ggfn2/Group-193.png" />
-                <img class="md:hidden" src="https://i.ibb.co/8gTVH2Y/Group-198.png" />
+                <picture>
+                    <source media="(min-width: 1024px)" srcset="https://i.ibb.co/v30JLYr/Group-192-2.png">
+                    <source media="(min-width: 768px)" srcset="https://i.ibb.co/c1ggfn2/Group-193.png">
+                    <img src="https://i.ibb.co/8gTVH2Y/Group-198.png" alt="404 Error Illustration" class="w-full h-auto">
+                </picture>
             </div>
-            <div class="w-full lg:w-1/2">
-                <h1 class="py-4 text-3xl lg:text-4xl font-extrabold text-gray-800 dark:text-white">Looks like you've found the doorway to the great nothing</h1>
-                <p class="py-4 text-base text-gray-800 dark:text-white">The content you’re looking for doesn’t exist. Either it was removed, or you mistyped the link.</p>
-                <p class="py-2 text-base text-gray-800 dark:text-white">Sorry about that! Please visit our hompage to get where you need to go.</p>
-                <button class="w-full lg:w-auto my-4 rounded-md px-1 sm:px-16 py-5 bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-700 focus:ring-opacity-50">Go back to Homepage</button>
+            <div class="w-full lg:w-1/2 text-center lg:text-left">
+                <h1 class="text-3xl lg:text-4xl font-extrabold text-gray-800 dark:text-white mb-4">
+                    Looks like you've found the doorway to the great nothing
+                </h1>
+                <p class="text-base text-gray-600 dark:text-gray-300 mb-3">
+                    The content you're looking for doesn't exist. Either it was removed, or you mistyped the link.
+                </p>
+                <p class="text-base text-gray-600 dark:text-gray-300 mb-6">
+                    Sorry about that! Please visit our homepage to get where you need to go.
+                </p>
+                <div class="flex justify-center lg:justify-start">
+                    <a href="/test_project" class="inline-block w-full lg:w-auto rounded-md px-8 py-3 bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-700 focus:ring-opacity-50 text-center transition-colors duration-300">
+                        Go back to Homepage
+                    </a>
+                </div>
             </div>
         </div>
-    
+    </main>
+</body>
+</html>

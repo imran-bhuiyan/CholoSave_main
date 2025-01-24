@@ -283,7 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </label>
                                     <div class="relative">
                                         <span
-                                            class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                                            class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">৳</span>
                                         <input type="number" id="amount" name="amount"
                                             class="block w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
                                             placeholder="Enter amount" required
@@ -406,37 +406,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <script>
 
-        // // Dark mode functionality
-        // let isDarkMode = localStorage.getItem('darkMode') === 'true';
-        // const body = document.body;
-        // const themeToggle = document.getElementById('theme-toggle');
-        // const themeIcon = themeToggle.querySelector('i');
-        // const themeText = themeToggle.querySelector('span');
-
-        // function updateTheme() {
-        //     if (isDarkMode) {
-        //         body.classList.add('dark-mode');
-        //         themeIcon.classList.remove('fa-moon');
-        //         themeIcon.classList.add('fa-sun');
-        //         themeText.textContent = 'Light Mode';
-        //     } else {
-        //         body.classList.remove('dark-mode');
-        //         themeIcon.classList.remove('fa-sun');
-        //         themeIcon.classList.add('fa-moon');
-        //         themeText.textContent = 'Dark Mode';
-        //     }
-        // }
-
-        // // Initialize theme
-        // updateTheme();
-
-        // themeToggle.addEventListener('click', () => {
-        //     isDarkMode = !isDarkMode;
-        //     localStorage.setItem('darkMode', isDarkMode);
-        //     updateTheme();
-        // });
-
-
+    
         window.addEventListener('resize', handleResize);
         handleResize();
 

@@ -96,12 +96,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['make_admin'])) {
         $stmt->execute();
         $stmt->close();
 
-        // Create notification for new admin
-        $messageTitle = " Group Admin Promotion";
-        $message = "You have been promoted to admin of the group.";
-        $notificationQuery = "INSERT INTO notifications (target_user_id, target_group_id, message,title, type, created_at) VALUES (?, ?, ?,?, 'admin_promotion', NOW())";
-        $stmt = $conn->prepare($notificationQuery);
-        $stmt->bind_param('iiss', $target_user_id, $group_id, $message, $messageTitle);
+        // Fetch group name
+        $groupNameQuery = "SELECT group_name FROM my_group WHERE group_id = ?";
+        $stmt = $conn->prepare($groupNameQuery);
+        $stmt->bind_param('i', $group_id);
+        $stmt->execute();
+        $stmt->bind_result($group_name);
+        $stmt->fetch();
+        $stmt->close();
+
+        // Notification for user
+        $message = "You have been promoted to admin of the group '{$group_name}'.";
+        $messageTitle = "Group Admin Promotion";
+        $userNotificationQuery = "INSERT INTO notifications (target_user_id, target_group_id, message, title, type, created_at) VALUES (?, NULL, ?, ?, 'admin_promotion', NOW())";
+        $stmt = $conn->prepare($userNotificationQuery);
+        $stmt->bind_param('iss', $target_user_id, $message, $messageTitle);
+        $stmt->execute();
+        $stmt->close();
+
+        // Notification for group
+        $groupMessage = "A new admin has been assigned to the group.";
+        $groupMessageTitle = "Group Admin Change";
+        $groupNotificationQuery = "INSERT INTO notifications (target_user_id, target_group_id, message, title, type, created_at) VALUES (NULL, ?, ?, ?, 'admin_promotion', NOW())";
+        $stmt = $conn->prepare($groupNotificationQuery);
+        $stmt->bind_param('iss', $group_id, $groupMessage, $groupMessageTitle);
         $stmt->execute();
         $stmt->close();
 

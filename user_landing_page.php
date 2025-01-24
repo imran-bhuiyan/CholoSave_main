@@ -107,7 +107,7 @@ $stmt->close();
         .cta-button {
             display: inline-block;
             padding: 0.7rem 2rem;
-            background-color: rgb(0, 63, 238);
+            background-color: rgb(0, 42, 196);
             color: white;
             text-decoration: none;
             border-radius: 10px;
@@ -179,6 +179,7 @@ $stmt->close();
     ?>
 
     <main>
+       
         <div class="hero-content -mt-80">
             <h1>
                 <div class="welcome-container">
