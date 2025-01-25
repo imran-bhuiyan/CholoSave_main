@@ -14,34 +14,26 @@ $question_id = mysqli_real_escape_string($conn, $_GET['id']);
 $update_views = "UPDATE questions SET views = views + 1 WHERE id = '$question_id'";
 mysqli_query($conn, $update_views);
 
-// Fetch question with user info and stats
+// Fetch question with user info
 $question_query = "
     SELECT 
         q.*,
-        u.name as author_name,
-        COUNT(DISTINCT CASE WHEN rc.reaction_type = 'upvote' THEN rc.id END) as upvotes,
-        COUNT(DISTINCT CASE WHEN rc.reaction_type = 'downvote' THEN rc.id END) as downvotes
+        u.name as author_name
     FROM questions q
     LEFT JOIN users u ON q.user_id = u.id
-    LEFT JOIN reactions rc ON q.id = rc.question_id
     WHERE q.id = '$question_id'
-    GROUP BY q.id
 ";
 $question_result = mysqli_query($conn, $question_query);
 $question = mysqli_fetch_assoc($question_result);
 
-// Fetch replies with user info and reactions
+// Fetch replies with user info
 $replies_query = "
     SELECT 
         r.*,
-        u.name as author_name,
-        COUNT(DISTINCT CASE WHEN rc.reaction_type = 'upvote' THEN rc.id END) as upvotes,
-        COUNT(DISTINCT CASE WHEN rc.reaction_type = 'downvote' THEN rc.id END) as downvotes
+        u.name as author_name
     FROM replies r
     LEFT JOIN users u ON r.user_id = u.id
-    LEFT JOIN reactions rc ON r.id = rc.reply_id
     WHERE r.question_id = '$question_id'
-    GROUP BY r.id
     ORDER BY r.created_at ASC
 ";
 $replies_result = mysqli_query($conn, $replies_query);
@@ -63,50 +55,46 @@ while ($reply = mysqli_fetch_assoc($replies_result)) {
 </head>
 
 <body class="bg-gray-100">
+
     <div class="container mx-auto px-4 py-8">
+
+    <!-- Bcak btn -->
+        <a href="forum.php" class="text-blue-500 hover:text-blue-700 mr-4">
+            <i class="fas fa-arrow-left text-2xl"></i>
+        </a>
         <!-- Question Section -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <div class="flex justify-between items-start">
-                <div class="flex-1">
-                    <h1 class="text-3xl font-bold text-gray-800 mb-4">
-                        <?php echo htmlspecialchars($question['title']); ?>
-                    </h1>
-                    <div class="prose max-w-none">
-                        <?php echo nl2br(htmlspecialchars($question['content'])); ?>
-                    </div>
-                    <div class="flex items-center mt-6 space-x-4">
-                        <span class="text-sm text-gray-500">
-                            <i class="fas fa-user"></i> <?php echo htmlspecialchars($question['author_name']); ?>
-                        </span>
+            <div class="flex items-center mb-4">
 
-                        <span class="text-sm text-gray-500">
-                            <i class="fas fa-clock"></i>
-                            <?php echo date('M d, Y', strtotime($question['created_at'])); ?>
-                        </span>
-                        <span class="text-sm text-gray-500">
-                            <i class="fas fa-eye"></i> <?php echo $question['views']; ?> views
-                        </span>
+                <div class="flex justify-between items-start w-full">
+                    <div class="flex-1">
+                        <h1 class="text-3xl font-bold text-gray-800 mb-4">
+                            <?php echo htmlspecialchars($question['title']); ?>
+                        </h1>
+                        <div class="prose max-w-none">
+                            <?php echo nl2br(htmlspecialchars($question['content'])); ?>
+                        </div>
+                        <div class="flex items-center mt-6 space-x-4">
+                            <span class="text-sm text-gray-500">
+                                <i class="fas fa-user"></i> <?php echo htmlspecialchars($question['author_name']); ?>
+                            </span>
 
-                        <?php if ($_SESSION['user_id'] == $question['user_id']): ?>
-                            <button onclick="deleteQuestion(<?php echo $question['id']; ?>)"
-                                class="ml-4 text-red-500 hover:text-red-700">
-                                <i class="fas fa-trash"></i> Delete Question
-                            </button>
-                        <?php endif; ?>
+                            <span class="text-sm text-gray-500">
+                                <i class="fas fa-clock"></i>
+                                <?php echo date('M d, Y', strtotime($question['created_at'])); ?>
+                            </span>
+                            <span class="text-sm text-gray-500">
+                                <i class="fas fa-eye"></i> <?php echo $question['views']; ?> views
+                            </span>
+
+                            <?php if ($_SESSION['user_id'] == $question['user_id']): ?>
+                                <button onclick="deleteQuestion(<?php echo $question['id']; ?>)"
+                                    class="ml-4 text-red-500 hover:text-red-700">
+                                    <i class="fas fa-trash"></i> Delete Question
+                                </button>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                </div>
-                <div class="flex flex-col items-center ml-4">
-                    <button onclick="vote('question', <?php echo $question['id']; ?>, 'upvote')"
-                        class="text-gray-500 hover:text-blue-500">
-                        <i class="fas fa-arrow-up fa-lg"></i>
-                    </button>
-                    <span class="text-xl font-semibold my-2">
-                        <?php echo $question['upvotes'] - $question['downvotes']; ?>
-                    </span>
-                    <button onclick="vote('question', <?php echo $question['id']; ?>, 'downvote')"
-                        class="text-gray-500 hover:text-red-500">
-                        <i class="fas fa-arrow-down fa-lg"></i>
-                    </button>
                 </div>
             </div>
         </div>
@@ -131,19 +119,6 @@ while ($reply = mysqli_fetch_assoc($replies_result)) {
                                     <?php echo date('M d, Y', strtotime($reply['created_at'])); ?>
                                 </span>
                             </div>
-                        </div>
-                        <div class="flex flex-col items-center ml-4">
-                            <button onclick="vote('reply', <?php echo $reply['id']; ?>, 'upvote')"
-                                class="text-gray-500 hover:text-blue-500">
-                                <i class="fas fa-arrow-up"></i>
-                            </button>
-                            <span class="text-lg font-semibold my-1">
-                                <?php echo $reply['upvotes'] - $reply['downvotes']; ?>
-                            </span>
-                            <button onclick="vote('reply', <?php echo $reply['id']; ?>, 'downvote')"
-                                class="text-gray-500 hover:text-red-500">
-                                <i class="fas fa-arrow-down"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -171,7 +146,6 @@ while ($reply = mysqli_fetch_assoc($replies_result)) {
     </div>
 
     <script>
-
         function deleteQuestion(questionId) {
             if (confirm('Are you sure you want to delete this question? This cannot be undone.')) {
                 fetch('delete_question.php', {
@@ -191,24 +165,9 @@ while ($reply = mysqli_fetch_assoc($replies_result)) {
                     });
             }
         }
-        function vote(type, id, voteType) {
-            fetch('vote.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `type=${type}&id=${id}&vote_type=${voteType}`
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    }
-                });
-        }
     </script>
-
-
 </body>
 
 </html>
+
+<?php include 'includes/new_footer.php'; ?>

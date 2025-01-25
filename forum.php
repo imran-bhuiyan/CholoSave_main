@@ -20,13 +20,10 @@ $questions_query = "
     SELECT 
         q.*, 
         u.name as author_name,
-        COUNT(DISTINCT r.id) as reply_count,
-        COUNT(DISTINCT CASE WHEN rc.reaction_type = 'upvote' THEN rc.id END) as upvotes,
-        COUNT(DISTINCT CASE WHEN rc.reaction_type = 'downvote' THEN rc.id END) as downvotes
+        COUNT(DISTINCT r.id) as reply_count
     FROM questions q
     LEFT JOIN users u ON q.user_id = u.id
     LEFT JOIN replies r ON q.id = r.question_id
-    LEFT JOIN reactions rc ON q.id = rc.question_id
     " . ($filter === 'my_questions' ? "WHERE q.user_id = '$user_id'" : "") . "
     GROUP BY q.id
     ORDER BY q.created_at DESC
@@ -52,7 +49,6 @@ while ($row = mysqli_fetch_assoc($questions_result)) {
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
         <!-- Welcome Section -->
-        <!-- Welcome Section -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
             <div class="flex justify-between items-center">
                 <div>
@@ -60,7 +56,7 @@ while ($row = mysqli_fetch_assoc($questions_result)) {
                         <?php echo htmlspecialchars($user['name']); ?>!</h1>
                     <p class="text-gray-600">Join the discussion or start your own topic</p>
                 </div>
-                <div class="flex space-x-4"> <!-- Added flex container for buttons -->
+                <div class="flex space-x-4">
                     <a href="#" onclick="showAskQuestionModal()"
                         class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg transition duration-200">
                         Ask Question
@@ -119,24 +115,10 @@ while ($row = mysqli_fetch_assoc($questions_result)) {
                                 </span>
                             </div>
                         </div>
-                        <div class="flex flex-col items-center justify-center ml-4">
-                            <button onclick="vote(<?php echo $question['id']; ?>, 'upvote')"
-                                class="text-gray-500 hover:text-blue-500">
-                                <i class="fas fa-arrow-up"></i>
-                            </button>
-                            <span class="text-lg font-semibold my-1">
-                                <?php echo $question['upvotes'] - $question['downvotes']; ?>
-                            </span>
-                            <button onclick="vote(<?php echo $question['id']; ?>, 'downvote')"
-                                class="text-gray-500 hover:text-red-500">
-                                <i class="fas fa-arrow-down"></i>
-                            </button>
-                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
-    </div>
     </div>
 
     <!-- Ask Question Modal -->
@@ -181,25 +163,7 @@ while ($row = mysqli_fetch_assoc($questions_result)) {
         function hideAskQuestionModal() {
             document.getElementById('askQuestionModal').classList.add('hidden');
         }
-
-        function vote(questionId, voteType) {
-            fetch('vote.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `question_id=${questionId}&vote_type=${voteType}`
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    }
-                });
-        }
     </script>
-
-    <!--  -->
 </body>
 
 </html>
