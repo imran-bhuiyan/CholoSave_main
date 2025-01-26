@@ -83,7 +83,7 @@ $stmt->close();
                                 0
                             </span>
                         </div>
-                        <span class="ml-3 group-hover:translate-x-1 transition-transform">Notifications</span>
+                        <span class="ml-3 group-hover:translate-x-1 transition-transform">Activity alert</span>
                     </a>
                 </div>
 

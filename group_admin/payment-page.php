@@ -2,25 +2,20 @@
 session_start();
 
 if (!isset($_SESSION['group_id'])) {
-  header("Location: /test_project/error_page.php"); // Redirect if group_id is not set
+  header("Location: /test_project/error_page.php");
   exit;
 }
 
 $group_id = $_SESSION['group_id'];
 $user_id = $_SESSION['user_id'];
 
-if (isset($_SESSION['group_id']) && isset($_SESSION['user_id'])) {
-  $group_id = $_SESSION['group_id'];
-  $user_id = $_SESSION['user_id'];
-  echo 'This is group id: ' . htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8');
-  echo 'This is user id: ' . htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8');
-} else {
-  echo 'Group ID is not set in the session.';
+if (!isset($conn)) {
+  include 'db.php';
+  include 'vendor/autoload.php';
 }
 
-if (!isset($conn)) {
-  include 'db.php'; // Ensure database connection
-}
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 // Fetch order summary details
 $stmt = $conn->prepare("SELECT CONCAT('CHS', UPPER(SUBSTRING(MD5(RAND()), 1, 2)), LOWER(SUBSTRING(MD5(RAND()), 3, 2)), FLOOR(RAND() * 10), 'AVE') AS transaction_id, amount AS Total, group_name AS merchants FROM my_group WHERE group_id = ?");
@@ -32,11 +27,13 @@ $transaction_id = $result['transaction_id'];
 $total_amount = $result['Total'];
 $merchant = $result['merchants'];
 
-// Fetch user name
-$user_stmt = $conn->prepare("SELECT name FROM users WHERE id = ?");
+// Fetch user name and email
+$user_stmt = $conn->prepare("SELECT name, email FROM users WHERE id = ?");
 $user_stmt->bind_param('i', $user_id);
 $user_stmt->execute();
-$user_name = $user_stmt->get_result()->fetch_assoc()['name'];
+$user_result = $user_stmt->get_result()->fetch_assoc();
+$user_name = $user_result['name'];
+$user_email = $user_result['email'];
 
 // Fetch payment method details
 $payment_stmt = $conn->prepare("SELECT bkash, Rocket, Nagad FROM my_group WHERE group_id = ?");
@@ -55,7 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $time_period_remaining = $check_stmt->get_result()->fetch_assoc()['time_period_remaining'];
 
     if ($time_period_remaining <= 0) {
-      // Display a SweetAlert message and redirect to the dashboard
       echo "
         <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
         <script>
@@ -66,49 +62,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             confirmButtonText: 'OK'
           }).then((result) => {
             if (result.isConfirmed) {
-              window.location.href = '/test_project/group_admin/group_admin_dashboard.php'; // Redirect to dashboard
+              window.location.href = '/test_project/group_member/group_member_dashboard.php';
             }
           });
         </script>";
       exit;
     }
 
-    $conn->begin_transaction();
+    // OTP Generation
+    $otp = sprintf("%06d", mt_rand(1, 999999));
+    $otp_expiry = date('Y-m-d H:i:s', strtotime('+2 minutes'));
 
+    // Clear any previous OTP for this transaction
+    $clear_otp_stmt = $conn->prepare("DELETE FROM payment_otps WHERE user_id = ? AND group_id = ?");
+    $clear_otp_stmt->bind_param('ii', $user_id, $group_id);
+    $clear_otp_stmt->execute();
+
+    // Store OTP in a separate table
+    $store_otp_stmt = $conn->prepare("INSERT INTO payment_otps (user_id, group_id, otp, otp_expiry, transaction_id, amount, payment_method) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $store_otp_stmt->bind_param('iisssds', $user_id, $group_id, $otp, $otp_expiry, $transaction_id, $total_amount, $selected_method);
+    $store_otp_stmt->execute();
+
+    // Send OTP via email
+    $mail = new PHPMailer(true);
     try {
-      // Insert into transaction_info
-      $insert_stmt = $conn->prepare("INSERT INTO transaction_info (user_id, group_id, amount, transaction_id, payment_method) VALUES (?, ?, ?, ?, ?)");
-      $insert_stmt->bind_param('iidss', $user_id, $group_id, $total_amount, $transaction_id, $selected_method);
-      $insert_stmt->execute();
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'cholosave.uiu@gmail.com';
+        $mail->Password = 'dhsq tqmy dfap ztob'; // Use App Password
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
 
-      // Insert into savings
-      $savings_stmt = $conn->prepare("INSERT INTO savings (user_id, group_id, amount) VALUES (?, ?, ?)");
-      $savings_stmt->bind_param('iid', $user_id, $group_id, $total_amount);
-      $savings_stmt->execute();
+        $mail->setFrom('cholosave.uiu@gmail.com', 'CholoSave');
+        $mail->addAddress($user_email);
+        $mail->isHTML(true);
+        $mail->Subject = 'Payment OTP Verification';
+        $mail->Body = "Your OTP for payment verification is: <b>$otp</b>. This OTP will expire in 2 minutes.";
 
-      // Update time_period_remaining in group_membership
-      $update_stmt = $conn->prepare("UPDATE group_membership SET time_period_remaining = time_period_remaining - 1 WHERE user_id = ? AND group_id = ?");
-      $update_stmt->bind_param('ii', $user_id, $group_id);
-      $update_stmt->execute();
+        $mail->send();
 
-        // Add 1% of the payment amount to the leaderboard
-        $points = $total_amount * 0.01; 
-        $update_leaderboard_stmt = $conn->prepare("UPDATE leaderboard SET points = points + ? WHERE group_id = ?");
-        $update_leaderboard_stmt->bind_param('di', $points, $group_id);
-        $update_leaderboard_stmt->execute();
-
-      $conn->commit();
-      $_SESSION['transaction_id'] = $transaction_id;
-      $_SESSION['total_amount'] = $total_amount;
-      $_SESSION['payment_method'] = $selected_method;
-      $_SESSION['transaction_date'] = date('Y-m-d H:i:s'); // Current date and time
-
-      header("Location: success_payment.php");
-      exit;
+        // Redirect to OTP verification page
+        header("Location: otp_verify_payment.php");
+        exit;
     } catch (Exception $e) {
-      $conn->rollback();
-      header("Location: failure_page.php");
-      exit;
+        // Handle email sending error
+        echo "OTP could not be sent. Error: {$mail->ErrorInfo}";
+        exit;
     }
   }
 }
@@ -116,7 +116,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -218,8 +217,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </div>
 
-
-
   <!-- Powered by SSL Logo -->
   <div class="fixed bottom-4 right-4 ">
     <img src="/api/placeholder/150/50" class="h-8">
@@ -244,5 +241,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   </script>
 </body>
-
 </html>
