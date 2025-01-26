@@ -7,6 +7,7 @@ if (!isset($_SESSION['group_id'])) {
 }
 
 $group_id = $_SESSION['group_id'];
+echo'The group id is '.$group_id;
 $user_id = $_SESSION['user_id'];
 
 if (!isset($conn)) {
@@ -62,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             confirmButtonText: 'OK'
           }).then((result) => {
             if (result.isConfirmed) {
-              window.location.href = '/test_project/group_member/group_member_dashboard.php';
+              window.location.href = '/test_project/group_admin/group_admin_dashboard.php';
             }
           });
         </script>";
@@ -137,13 +138,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <!-- Order Summary Card -->
       <div class="bg-white rounded shadow-sm mt-48">
         <div class="bg-blue-700 text-white p-4 rounded-t flex justify-between items-center">
-          <h2 class="text-xl">Order Summary</h2>
+          <h2 class="text-xl">Deposit Summary</h2>
         </div>
         <div class="p-6 space-y-4">
           <div class="grid grid-cols-2 gap-2 text-gray-600">
             <div>Customer Name:</div>
             <div><?= htmlspecialchars($user_name) ?></div>
-            <div>Merchant:</div>
+            <div>Group:</div>
             <div><?= htmlspecialchars($merchant) ?></div>
             <div>Transaction ID:</div>
             <div><?= htmlspecialchars($transaction_id) ?></div>

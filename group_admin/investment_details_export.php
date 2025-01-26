@@ -46,12 +46,12 @@ $investments = $_SESSION['investment_data'];
 // Calculate totals
 $totalInvestment = 0;
 $totalExpectedProfit = 0;
-$totalActualProfit = 0;
+$totalActualReturns = 0;
 
 foreach ($investments as $investment) {
     $totalInvestment += $investment['Investment Amount'];
     $totalExpectedProfit += $investment['Expected Profit'];
-    $totalActualProfit += isset($investment['Actual Profit']) ? $investment['Actual Profit'] : 0;
+    $totalActualReturns += $investment['Return Amount'] ?? 0;
 }
 
 // Create PDF
@@ -66,30 +66,36 @@ $pdf->Cell(0, 10, 'Investment Summary', 0, 1, 'L', true);
 $pdf->SetFont('Arial', '', 10);
 $pdf->Cell(95, 8, 'Total Investment: BDT ' . number_format($totalInvestment, 2), 1, 0, 'L');
 $pdf->Cell(95, 8, 'Total Expected Profit: BDT ' . number_format($totalExpectedProfit, 2), 1, 1, 'L');
-$pdf->Cell(95, 8, 'Total Actual Profit: BDT ' . number_format($totalActualProfit, 2), 1, 0, 'L');
-$pdf->Cell(95, 8, 'ROI: ' . number_format(($totalActualProfit/$totalInvestment)*100, 2) . '%', 1, 1, 'L');
+$pdf->Cell(95, 8, 'Total Actual Returns: BDT ' . number_format($totalActualReturns, 2), 1, 0, 'L');
+$pdf->Cell(95, 8, 'Total Profit/Loss: BDT ' . number_format($totalActualReturns - $totalInvestment, 2), 1, 1, 'L');
 
 $pdf->Ln(10);
 
 // Table Header with styling
 $pdf->SetFillColor(52, 73, 94);
 $pdf->SetTextColor(255, 255, 255);
-$pdf->SetFont('Arial', 'B', 11);
-$pdf->Cell(40, 10, 'Amount', 1, 0, 'C', true);
-$pdf->Cell(30, 10, 'Type', 1, 0, 'C', true);
-$pdf->Cell(30, 10, 'Status', 1, 0, 'C', true);
-$pdf->Cell(45, 10, 'Expected Profit', 1, 0, 'C', true);
-$pdf->Cell(45, 10, 'Actual Profit', 1, 1, 'C', true);
+$pdf->SetFont('Arial', 'B', 10);
+$pdf->Cell(30, 10, 'Amount', 1, 0, 'C', true);
+$pdf->Cell(20, 10, 'Type', 1, 0, 'C', true);
+$pdf->Cell(20, 10, 'Status', 1, 0, 'C', true);
+$pdf->Cell(30, 10, 'Exp. Profit', 1, 0, 'C', true);
+$pdf->Cell(30, 10, 'Return Amt', 1, 0, 'C', true);
+$pdf->Cell(30, 10, 'Profit/Loss', 1, 0, 'C', true);
+$pdf->Cell(30, 10, 'Return Date', 1, 1, 'C', true);
 
 // Table Body with alternating colors
 $pdf->SetTextColor(0, 0, 0);
-$pdf->SetFont('Arial', '', 10);
+$pdf->SetFont('Arial', '', 9);
 $fill = false;
 
 foreach ($investments as $investment) {
     $pdf->SetFillColor(245, 245, 245);
-    $pdf->Cell(40, 8, 'BDT ' . number_format($investment['Investment Amount'], 2), 1, 0, 'R', $fill);
-    $pdf->Cell(30, 8, $investment['Type'], 1, 0, 'C', $fill);
+    
+    // Investment Amount
+    $pdf->Cell(30, 8, 'BDT ' . number_format($investment['Investment Amount'], 2), 1, 0, 'R', $fill);
+    
+    // Investment Type
+    $pdf->Cell(20, 8, $investment['Type'], 1, 0, 'C', $fill);
     
     // Status with color coding
     $statusColor = match(strtolower($investment['status'])) {
@@ -99,11 +105,43 @@ foreach ($investments as $investment) {
         default => array(0, 0, 0)
     };
     $pdf->SetTextColor($statusColor[0], $statusColor[1], $statusColor[2]);
-    $pdf->Cell(30, 8, ucfirst($investment['status']), 1, 0, 'C', $fill);
+    $pdf->Cell(20, 8, ucfirst($investment['status']), 1, 0, 'C', $fill);
+    
+    // Reset text color
     $pdf->SetTextColor(0, 0, 0);
     
-    $pdf->Cell(45, 8, 'BDT ' . number_format($investment['Expected Profit'], 2), 1, 0, 'R', $fill);
-    $pdf->Cell(45, 8, isset($investment['Actual Profit']) ? 'BDT ' . number_format($investment['Actual Profit'], 2) : '-', 1, 1, 'R', $fill);
+    // Expected Profit
+    $pdf->Cell(30, 8, 'BDT ' . number_format($investment['Expected Profit'], 2), 1, 0, 'R', $fill);
+    
+    // Return Amount
+    $pdf->Cell(30, 8, 
+        $investment['Return Amount'] !== null 
+        ? 'BDT ' . number_format($investment['Return Amount'], 2) 
+        : '-', 
+        1, 0, 'R', $fill
+    );
+    
+    // Profit/Loss
+    $profitLossColor = $investment['Profit/Loss'] > 0 ? array(0, 128, 0) : array(255, 0, 0);
+    $pdf->SetTextColor($profitLossColor[0], $profitLossColor[1], $profitLossColor[2]);
+    $pdf->Cell(30, 8, 
+        $investment['Profit/Loss'] !== null 
+        ? 'BDT ' . number_format($investment['Profit/Loss'], 2) 
+        : '-', 
+        1, 0, 'R', $fill
+    );
+    
+    // Reset text color
+    $pdf->SetTextColor(0, 0, 0);
+    
+    // Return Date
+    $pdf->Cell(30, 8, 
+        $investment['Return Date'] !== null 
+        ? date('d-m-Y', strtotime($investment['Return Date'])) 
+        : '-', 
+        1, 1, 'C', $fill
+    );
+    
     $fill = !$fill;
 }
 
@@ -112,7 +150,7 @@ $pdf->Ln(10);
 $pdf->SetFont('Arial', 'B', 11);
 $pdf->Cell(0, 10, 'Notes:', 0, 1, 'L');
 $pdf->SetFont('Arial', '', 10);
-$pdf->MultiCell(0, 5, 'This is an official investment report. All amounts are in BDT (Bangladesh Taka). For any queries, please contact our support team.');
+$pdf->MultiCell(0, 5, 'This is an official investment report. All amounts are in BDT (Bangladesh Taka). Profit/Loss calculations are based on Return Amount compared to Initial Investment.');
 
 // Clear session data
 unset($_SESSION['investment_data']);

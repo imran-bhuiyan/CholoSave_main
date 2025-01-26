@@ -41,7 +41,7 @@ $investmentHistoryQuery = "
         i.investment_type AS Type, 
         i.status, 
         i.ex_profit AS 'Expected Profit', 
-        ir.amount AS 'Actual Profit', 
+        ir.amount AS 'Return Amount', 
         ir.return_date AS 'Return Date'
     FROM 
         investments i 
@@ -60,10 +60,19 @@ if ($stmt = $conn->prepare($investmentHistoryQuery)) {
     $stmt->execute();
     $result = $stmt->get_result();
     while ($row = $result->fetch_assoc()) {
+        // Calculate Profit/Loss
+        if ($row['Return Amount'] !== null) {
+            $row['Profit/Loss'] = $row['Return Amount'] - $row['Investment Amount'];
+            $row['Profit/Loss Percentage'] = ($row['Profit/Loss'] / $row['Investment Amount']) * 100;
+        } else {
+            $row['Profit/Loss'] = null;
+            $row['Profit/Loss Percentage'] = null;
+        }
         $investments[] = $row;
     }
     $stmt->close();
 }
+
 
 // Store investments in session for PDF export
 $_SESSION['investment_data'] = $investments;
@@ -72,6 +81,7 @@ $_SESSION['investment_data'] = $investments;
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -83,27 +93,33 @@ $_SESSION['investment_data'] = $investments;
         body {
             font-family: 'Inter', sans-serif;
         }
+
         .glass-effect {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
         }
+
         .hover-scale {
             transition: transform 0.2s;
         }
+
         .hover-scale:hover {
             transform: scale(1.02);
         }
+
         .status-badge {
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
             font-size: 0.875rem;
             font-weight: 500;
         }
+
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
     </style>
 </head>
+
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
     <div class="flex h-screen">
         <!-- Sidebar -->
@@ -125,10 +141,10 @@ $_SESSION['investment_data'] = $investments;
                             </h1>
                         </div>
                         <div class="flex items-center space-x-4">
-                        <a href="investment_details_export.php" 
-   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm transition-colors duration-200 inline-flex items-center">
-    <i class="fas fa-download mr-2"></i> Export
-</a>
+                            <a href="investment_details_export.php"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm transition-colors duration-200 inline-flex items-center">
+                                <i class="fas fa-download mr-2"></i> Export
+                            </a>
 
                         </div>
                     </div>
@@ -148,9 +164,9 @@ $_SESSION['investment_data'] = $investments;
                                 <div class="ml-4">
                                     <p class="text-sm font-medium text-gray-600">Total Investments</p>
                                     <h3 class="text-xl font-bold text-gray-900">
-                                        <?php 
-                                            $totalInvestment = array_sum(array_column($investments, 'Investment Amount'));
-                                            echo 'BDT ' . number_format($totalInvestment, 2);
+                                        <?php
+                                        $totalInvestment = array_sum(array_column($investments, 'Investment Amount'));
+                                        echo 'BDT ' . number_format($totalInvestment, 2);
                                         ?>
                                     </h3>
                                 </div>
@@ -164,9 +180,9 @@ $_SESSION['investment_data'] = $investments;
                                 <div class="ml-4">
                                     <p class="text-sm font-medium text-gray-600">Expected Returns</p>
                                     <h3 class="text-xl font-bold text-gray-900">
-                                        <?php 
-                                            $totalExpected = array_sum(array_column($investments, 'Expected Profit'));
-                                            echo 'BDT ' . number_format($totalExpected, 2);
+                                        <?php
+                                        $totalExpected = array_sum(array_column($investments, 'Expected Profit'));
+                                        echo 'BDT ' . number_format($totalExpected, 2);
                                         ?>
                                     </h3>
                                 </div>
@@ -180,68 +196,112 @@ $_SESSION['investment_data'] = $investments;
                                 <div class="ml-4">
                                     <p class="text-sm font-medium text-gray-600">Actual Returns</p>
                                     <h3 class="text-xl font-bold text-gray-900">
-                                        <?php 
-                                            $totalActual = array_sum(array_filter(array_column($investments, 'Actual Profit')));
-                                            echo 'BDT ' . number_format($totalActual, 2);
+                                        <?php
+                                        $totalActual = array_sum(array_filter(array_column($investments, 'Actual Profit')));
+                                        echo 'BDT ' . number_format($totalActual, 2);
                                         ?>
                                     </h3>
                                 </div>
                             </div>
                         </div>
+                        
                     </div>
 
                     <!-- Investment History Table -->
                     <div class="glass-effect rounded-xl shadow-sm overflow-hidden">
                         <div class="px-6 py-4 border-b border-gray-200">
                             <h2 class="text-xl font-semibold text-gray-900">Investment & Return History</h2>
-                            <p class="text-sm text-gray-600 mt-1">Comprehensive view of all investments and their returns</p>
+                            <p class="text-sm text-gray-600 mt-1">Comprehensive view of all investments and their
+                                returns</p>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Investment Amount</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expected Profit</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actual Profit</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Return Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    <?php foreach ($investments as $investment): ?>
-                                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                BDT <?php echo number_format($investment['Investment Amount'], 2); ?>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                <?php echo $investment['Type']; ?>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <?php
-                                                    $statusColor = [
-                                                        'pending' => 'bg-yellow-100 text-yellow-800',
-                                                        'active' => 'bg-green-100 text-green-800',
-                                                        'completed' => 'bg-blue-100 text-blue-800'
-                                                    ][$investment['status']] ?? 'bg-gray-100 text-gray-800';
-                                                ?>
-                                                <span class="status-badge <?php echo $statusColor; ?>">
-                                                    <?php echo ucfirst($investment['status']); ?>
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                BDT <?php echo number_format($investment['Expected Profit'], 2); ?>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                <?php echo isset($investment['Actual Profit']) ? 'BDT ' . number_format($investment['Actual Profit'], 2) : '-'; ?>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                <?php echo isset($investment['Return Date']) ? date('d-m-Y', strtotime($investment['Return Date'])) : '-'; ?>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+                        <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+        <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Investment Amount</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Type</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Expected Profit</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Return Amount</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Profit/Loss</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Profit/Loss %</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Return Date</th>
+        </tr>
+    </thead>
+    <tbody class="bg-white divide-y divide-gray-200">
+        <?php foreach ($investments as $investment): ?>
+            <tr class="hover:bg-gray-50 transition-colors duration-200">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    BDT <?php echo number_format($investment['Investment Amount'], 2); ?>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <?php echo $investment['Type']; ?>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <?php
+                    $statusColor = [
+                        'pending' => 'bg-yellow-100 text-yellow-800',
+                        'active' => 'bg-green-100 text-green-800',
+                        'completed' => 'bg-blue-100 text-blue-800'
+                    ][$investment['status']] ?? 'bg-gray-100 text-gray-800';
+                    ?>
+                    <span class="status-badge <?php echo $statusColor; ?>">
+                        <?php echo ucfirst($investment['status']); ?>
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    BDT <?php echo number_format($investment['Expected Profit'], 2); ?>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <?php echo isset($investment['Return Amount']) ? 'BDT ' . number_format($investment['Return Amount'], 2) : '-'; ?>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm 
+                    <?php 
+                    // Color code Profit/Loss
+                    if ($investment['Profit/Loss'] !== null) {
+                        echo $investment['Profit/Loss'] > 0 ? 'text-green-600' : 'text-red-600';
+                    }
+                    ?>">
+                    <?php 
+                    if ($investment['Profit/Loss'] !== null) {
+                        echo $investment['Profit/Loss'] > 0 ? '+' : '';
+                        echo 'BDT ' . number_format($investment['Profit/Loss'], 2);
+                    } else {
+                        echo '-';
+                    }
+                    ?>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm 
+                    <?php 
+                    // Color code Profit/Loss Percentage
+                    if ($investment['Profit/Loss Percentage'] !== null) {
+                        echo $investment['Profit/Loss Percentage'] > 0 ? 'text-green-600' : 'text-red-600';
+                    }
+                    ?>">
+                    <?php 
+                    if ($investment['Profit/Loss Percentage'] !== null) {
+                        echo $investment['Profit/Loss Percentage'] > 0 ? '+' : '';
+                        echo number_format($investment['Profit/Loss Percentage'], 2) . '%';
+                    } else {
+                        echo '-';
+                    }
+                    ?>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <?php echo isset($investment['Return Date']) ? date('d-m-Y', strtotime($investment['Return Date'])) : '-'; ?>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
                         </div>
                     </div>
                 </div>
@@ -271,6 +331,7 @@ $_SESSION['investment_data'] = $investments;
         handleResize(); // Initial check
     </script>
 </body>
+
 </html>
 
 <?php include 'new_footer.php'; ?>

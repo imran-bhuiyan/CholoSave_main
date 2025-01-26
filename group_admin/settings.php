@@ -256,7 +256,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
 <script>
-    document.querySelector('.close-savings-btn').addEventListener('click', async (e) => {
+   document.querySelector('.close-savings-btn').addEventListener('click', async (e) => {
     e.preventDefault();
 
     const questions = [
@@ -284,31 +284,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (allYes) {
-        Swal.fire({
-            title: 'Warning',
-            text: 'Closing savings means all group data will be permanently deleted. You cannot recover this information. Are you absolutely sure?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Yes, close savings!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Submit form to backend
-                fetch('/test_project/group_admin/close_savings.php', {
-                    method: 'POST',
-                    body: JSON.stringify({ confirm: true })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire('Savings Closed', 'All group data has been deleted.', 'success')
-                            .then(() => window.location.href = '/test_project/groups.php');
-                    } else {
-                        Swal.fire('Error', data.message || 'Could not close savings', 'error');
+        // First, validate total savings vs withdrawals
+        try {
+            const response = await fetch('/test_project/group_admin/validate_savings.php', {
+                method: 'POST'
+            });
+            const data = await response.json();
+
+            if (data.is_balanced) {
+                Swal.fire({
+                    title: 'Warning',
+                    text: 'Closing savings means all group data will be permanently deleted. You cannot recover this information. Are you absolutely sure?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'Yes, close savings!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch('/test_project/group_admin/close_savings.php', {
+                            method: 'POST',
+                            body: JSON.stringify({ confirm: true })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('Savings Closed', 'All group data has been deleted.', 'success')
+                                    .then(() => window.location.href = '/test_project/groups.php');
+                            } else {
+                                Swal.fire('Error', data.message || 'Could not close savings', 'error');
+                            }
+                        });
                     }
                 });
+            } else {
+                Swal.fire({
+                    title: 'Savings Balance Error',
+                    text: 'Total savings and withdrawals do not balance. Cannot close savings group.',
+                    icon: 'error',
+                    confirmButtonText: 'Understood'
+                });
             }
-        });
+        } catch (error) {
+            Swal.fire({
+                title: 'Validation Error',
+                text: 'Could not validate savings balance. Please try again.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
     } else {
         Swal.fire({
             title: 'Incomplete Process',
