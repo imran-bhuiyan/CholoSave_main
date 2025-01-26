@@ -1,3 +1,23 @@
+
+<?php
+// Include database connection
+include 'db.php';
+
+// Get total users count
+$userQuery = "SELECT COUNT(id) as total_users FROM users";
+$userResult = mysqli_query($conn, $userQuery);
+$userCount = mysqli_fetch_assoc($userResult)['total_users'];
+
+// Get total groups count
+$groupQuery = "SELECT COUNT(group_id) as total_groups FROM my_group";
+$groupResult = mysqli_query($conn, $groupQuery);
+$groupCount = mysqli_fetch_assoc($groupResult)['total_groups'];
+
+// Close connection
+mysqli_close($conn);
+?>
+
+
 <?php include 'includes/new_header.php'; ?>
 
 <!DOCTYPE html>
@@ -15,16 +35,7 @@
 
 <body>
     <main class="landing">
-        <!-- <section class="hero ml-56">
-            <div>
-                <h1 class="text-bold text-5xl mb-5" >Welcome to <span class="brand">CholoSave</span></h1>
-                <p class="mb-6">Empowering groups to save, invest, and achieve shared financial goals seamlessly.</p>
-                <a href="/test_project/register.php" class="btn-primary mt-56">Get Started</a>
-            </div>
-            <div class="hero-image">
-                <img src="/test_project/assets/images/image1.png" alt="Landing Page Graphic">
-            </div>
-        </section> -->
+    
         <div class="relative h-screen">
             <div class="carousel relative h-full overflow-hidden">
                 <!-- Carousel Slides -->
@@ -215,7 +226,7 @@
                                 </div>
                                 <h3 class="text-white text-lg font-medium mb-2">Total Users</h3>
                                 <div class="text-4xl font-bold text-white mb-2">
-                                    <span id="userCount" data-target="15234">0</span>
+                                <span id="userCount" data-target="<?php echo $userCount; ?>">0</span>
                                 </div>
                                 <p class="text-blue-100">Active members in our community</p>
                             </div>
@@ -233,7 +244,7 @@
                                 </div>
                                 <h3 class="text-white text-lg font-medium mb-2">Active Groups</h3>
                                 <div class="text-4xl font-bold text-white mb-2">
-                                    <span id="groupCount" data-target="1867">0</span>
+                                <span id="groupCount" data-target="<?php echo $groupCount; ?>">0</span>
                                 </div>
                                 <p class="text-blue-100">Collaborative saving groups</p>
                             </div>

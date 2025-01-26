@@ -54,6 +54,10 @@ try {
 
     // 4. Delete related tables with group_id
     $tablesToDelete = [
+        'investment_returns' => "DELETE ir FROM investment_returns ir 
+        JOIN investments i ON ir.investment_id = i.investment_id 
+        WHERE i.group_id = ?",
+        'investments' => "DELETE FROM investments WHERE group_id = ?",
         'polls_vote' => "DELETE pv FROM polls_vote pv 
                          JOIN polls p ON pv.poll_id = p.poll_id 
                          WHERE p.group_id = ?",

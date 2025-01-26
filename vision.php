@@ -1,3 +1,22 @@
+
+<?php
+// Include database connection
+include 'db.php';
+
+// Get total users count
+$userQuery = "SELECT COUNT(id) as total_users FROM users";
+$userResult = mysqli_query($conn, $userQuery);
+$userCount = mysqli_fetch_assoc($userResult)['total_users'];
+
+// Get total groups count
+$groupQuery = "SELECT COUNT(group_id) as total_groups FROM my_group";
+$groupResult = mysqli_query($conn, $groupQuery);
+$groupCount = mysqli_fetch_assoc($groupResult)['total_groups'];
+
+// Close connection
+mysqli_close($conn);
+?>
+
 <?php include 'includes/new_header.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -313,15 +332,15 @@
                             <i class="fas fa-users fa-2x"></i>
                         </div>
                         <h3 class="stat-title">Total Users</h3>
-                        <div class="stat-number" id="userCount" data-target="15234">0</div>
+                        <div class="stat-number" id="userCount" data-target="<?php echo $userCount; ?>">0</div>
                         <p class="stat-description">Active members in our community</p>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <i class="fas fa-people-group fa-2x"></i>
+                            <i class="fas fa-users fa-2x"></i>
                         </div>
                         <h3 class="stat-title">Active Groups</h3>
-                        <div class="stat-number" id="groupCount" data-target="1867">0</div>
+                        <div class="stat-number" id="groupCount" data-target="<?php echo $groupCount; ?>">0</div>
                         <p class="stat-description">Collaborative saving groups</p>
                     </div>
                 </div>
