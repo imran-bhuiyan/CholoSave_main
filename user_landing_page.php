@@ -127,11 +127,11 @@ $stmt->close();
             max-width: 500px;
             position: relative;
             right: -20px;
-            transition: all 0.3s ease;
+            /* transition: all 0.3s ease; */
         }
 
         .custom-image:hover {
-            transform: scale(1.05);
+            /* transform: scale(1.05); */
         }
 
         .flower {
@@ -180,7 +180,7 @@ $stmt->close();
 
     <main>
        
-        <div class="hero-content -mt-80">
+        <div class="hero-content -mt-40">
             <h1>
                 <div class="welcome-container">
                     <div id="welcome-text" data-text="<?php echo $pageTitle; ?>"></div>
@@ -189,7 +189,7 @@ $stmt->close();
             <p class="subtitle"><?php echo $subtitle; ?></p>
             <a href="/test_project/groups.php" class="cta-button">Start</a>
         </div>
-        <div class="decoration -mt-80">
+        <div class="decoration -mt-40">
             <img src="land.png" alt="Land Image" class="custom-image">
         </div>
     </main>

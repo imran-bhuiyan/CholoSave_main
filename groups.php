@@ -340,7 +340,7 @@ if ($joinedGroupsResult) {
                         <p class="text-gray-600">
                             <span class="font-medium text-gray-700">Installment:</span>
                             <span
-                                class="text-blue-600 font-medium">$<?php echo htmlspecialchars($group['installment']); ?></span>
+                                class="text-blue-600 font-medium">BDT <?php echo htmlspecialchars($group['installment']); ?></span>
                         </p>
                         <p class="text-gray-600">
                             <span class="font-medium text-gray-700">Members:</span>
@@ -405,7 +405,7 @@ if ($joinedGroupsResult) {
                         <p class="text-gray-600">
                             <span class="font-medium text-gray-700">Installment:</span>
                             <span
-                                class="text-blue-600 font-medium">$<?php echo htmlspecialchars($group['installment']); ?></span>
+                                class="text-blue-600 font-medium">BDT <?php echo htmlspecialchars($group['installment']); ?></span>
                         </p>
                         <p class="text-gray-600">
                             <span class="font-medium text-gray-700">Members:</span>
@@ -493,7 +493,7 @@ if ($joinedGroupsResult) {
                         </p>
                         <p class="text-gray-600 mt-2">
                             <span class="font-medium text-gray-700">Goal Amount:</span>
-                            $<span id="modalGoalAmount" class="text-blue-600"></span>
+                            BDT <span id="modalGoalAmount" class="text-blue-600"></span>
                         </p>
                     </div>
                     <div class="p-4 bg-gray-50 rounded-lg">
@@ -503,10 +503,10 @@ if ($joinedGroupsResult) {
                         </p>
                         <p class="text-gray-600 mt-2">
                             <span class="font-medium text-gray-700">Emergency Fund:</span>
-                            $<span id="modalEmergencyFund" class="text-blue-600"></span>
+                            BDT <span id="modalEmergencyFund" class="text-blue-600"></span>
                         </p>
                         <p class="text-gray-600 mt-2">
-                            <span class="font-medium text-gray-700">Total Members:</span>
+                            <span class="font-medium text-gray-700">Group Size :</span>
                             <span id="modalMembers" class="text-blue-600"></span>
                         </p>
                     </div>

@@ -35,6 +35,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $loan_stmt->close();
     
+    // Check total savings and withdrawals
+    $savings_query = "SELECT COALESCE(SUM(amount), 0) as total_savings FROM savings 
+                     WHERE user_id = ? AND group_id = ?";
+    $savings_stmt = $conn->prepare($savings_query);
+    $savings_stmt->bind_param("ii", $user_id, $group_id);
+    $savings_stmt->execute();
+    $savings_result = $savings_stmt->get_result();
+    $savings_data = $savings_result->fetch_assoc();
+    $total_savings = $savings_data['total_savings'];
+    $savings_stmt->close();
+    
+    $withdrawal_query = "SELECT COALESCE(SUM(amount), 0) as total_withdrawn FROM withdrawal 
+                        WHERE user_id = ? AND group_id = ? AND status = 'approved'";
+    $withdrawal_stmt = $conn->prepare($withdrawal_query);
+    $withdrawal_stmt->bind_param("ii", $user_id, $group_id);
+    $withdrawal_stmt->execute();
+    $withdrawal_result = $withdrawal_stmt->get_result();
+    $withdrawal_data = $withdrawal_result->fetch_assoc();
+    $total_withdrawn = $withdrawal_data['total_withdrawn'];
+    $withdrawal_stmt->close();
+    
+    // Check if total savings minus total withdrawn is zero
+    if ($total_savings - $total_withdrawn > 0) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'First withdraw the money you saved before leaving the group.'
+        ]);
+        exit;
+    }
+    
     // Check if user already has a pending leave request
     $check_query = "SELECT leave_request FROM group_membership 
                    WHERE group_id = ? AND user_id = ?";

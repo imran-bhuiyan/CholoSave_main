@@ -11,10 +11,12 @@
     <title>CholoSave</title>
 </head>
 <body>
-    <header class="header">
+     <header class="header">
         <div class="container">
             <div class="logo">
-                <a href="/test_project/">Cholo<span class="brand">Save</span></a>
+                <a href="/test_project/">
+                    <img src="/test_project/includes/project_logo1.png" alt="CholoSave Logo" class="logo-image">
+                </a>
             </div>
             <nav class="nav">
                 <a href="/test_project/" class="nav-item">
@@ -54,30 +56,12 @@ body {
     background-color: #f4f7f9;
 }
 
-/* .header {
-    background-color: #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
-    height: 5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-} */
-
 .header {
-    background-color: rgba(255, 255, 255, 0.8); /* Reduced opacity */
+    background-color: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px); /* For Safari support */
+    -webkit-backdrop-filter: blur(8px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    position: fixed; /* Changed from sticky to fixed */
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
@@ -85,9 +69,6 @@ body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-
-/* This is for glass effect */
-
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -97,6 +78,13 @@ body {
     justify-content: space-between;
     align-items: center;
 }
+
+.logo-image {
+    max-height: 3.5rem; /* Adjust height to fit within header */
+    width: auto;
+    object-fit: contain;
+}
+
 
 /* Update nav background for mobile to match glassmorphism */
 @media screen and (max-width: 768px) {

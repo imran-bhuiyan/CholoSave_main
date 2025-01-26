@@ -145,7 +145,7 @@ try {
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Total Savings</p>
                         <h3 class="text-2xl font-bold text-green-600">
-                            $<?= number_format($portfolio['total_savings'], 2) ?></h3>
+                            BDT <?= number_format($portfolio['total_savings'], 2) ?></h3>
                     </div>
                     <div class="bg-green-100 p-3 rounded-full">
                         <i class="fas fa-piggy-bank text-green-600 text-xl"></i>
@@ -159,7 +159,7 @@ try {
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Outstanding Loans</p>
                         <h3 class="text-2xl font-bold text-red-600">
-                            $<?= number_format($portfolio['outstanding_loans'], 2) ?></h3>
+                            BDT <?= number_format($portfolio['outstanding_loans'], 2) ?></h3>
                     </div>
                     <div class="bg-red-100 p-3 rounded-full">
                         <i class="fas fa-hand-holding-dollar text-red-600 text-xl"></i>
@@ -179,14 +179,14 @@ try {
                             <i class="fas fa-arrow-down text-red-500 mr-3"></i>
                             <span>Withdrawn Amount</span>
                         </div>
-                        <span class="font-semibold">$<?= number_format($portfolio['withdrawn_amount'], 2) ?></span>
+                        <span class="font-semibold">BDT <?= number_format($portfolio['withdrawn_amount'], 2) ?></span>
                     </div>
                     <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <div class="flex items-center">
                             <i class="fas fa-arrow-up text-green-500 mr-3"></i>
                             <span>Total Contributions</span>
                         </div>
-                        <span class="font-semibold">$<?= number_format($portfolio['total_group_contributions'], 2) ?></span>
+                        <span class="font-semibold">BDT <?= number_format($portfolio['total_group_contributions'], 2) ?></span>
                     </div>
                 </div>
             </div>

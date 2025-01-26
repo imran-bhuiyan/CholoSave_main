@@ -59,10 +59,26 @@ $due_loans = fetchSingleValue($conn, $due_loans_query, $group_id);
 
 $total_withdrawals = fetchSingleValue($conn, $total_withdrawals_query, $group_id);
 
+function calculateMySavings($conn, $user_id, $group_id) {
+    $my_savings_query = "SELECT IFNULL(
+        (SELECT SUM(amount) FROM savings WHERE user_id = ? AND group_id = ?) - 
+        (SELECT IFNULL(SUM(amount), 0) FROM withdrawal WHERE user_id = ? AND group_id = ? AND status = 'approved'), 
+    0) AS my_savings";
 
+    $stmt = $conn->prepare($my_savings_query);
+    $stmt->bind_param("iiii", $user_id, $group_id, $user_id, $group_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $my_savings_row = $result->fetch_assoc();
+    return $my_savings_row['my_savings'];
+}
 
-
+// Calculate my savings
+$my_savings = calculateMySavings($conn, $user_id, $group_id);
 ?>
+
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -116,6 +132,11 @@ $total_withdrawals = fetchSingleValue($conn, $total_withdrawals_query, $group_id
         --bg-start: #9B59B6;
         --bg-end: #8E44AD;
     }
+    .mysavings-card {
+        --bg-start:rgb(0, 0, 0);
+        --bg-end:rgb(0, 0, 0);
+    }
+
     </style>
 </head>
 
@@ -144,14 +165,14 @@ $total_withdrawals = fetchSingleValue($conn, $total_withdrawals_query, $group_id
             <!-- Main Content Area -->
             <main class="flex-1 overflow-y-auto p-4">
                 <!-- Stats Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
                     <div class="stats-card bg-white p-6 rounded-lg shadow cursor-pointer">
                         <div class="flex justify-between items-center">
                             <div>
                                 <h3 class="text-white-500 font-semibold">Total Savings</h3>
                                 <p class="text-2xl font-bold" id="savings-counter">
                                     $<?php echo number_format($total_group_savings, 2); ?></p>
-                                <p class="text-green-500 text-sm">+$<?php echo number_format($this_month_savings, 2); ?>
+                                <p class="text-green-500 text-sm">+BDT <?php echo number_format($this_month_savings, 2); ?>
                                     this month</p>
                             </div>
                             <div class="text-2xl text-gray-400">
@@ -189,7 +210,7 @@ $total_withdrawals = fetchSingleValue($conn, $total_withdrawals_query, $group_id
                     <div class="stats-card bg-white p-6 rounded-lg shadow cursor-pointer">
                         <div class="flex justify-between items-center">
                             <div>
-                                <h3 class="text-white-500 font-semibold">Due Loans</h3>
+                                <h3 class="text-white-500 font-semibold">Member's Due Loans</h3>
                                 <p class="text-2xl font-bold" id="loans-counter">
                                     $<?php echo number_format($due_loans, 2); ?></p>
                             </div>
@@ -202,7 +223,7 @@ $total_withdrawals = fetchSingleValue($conn, $total_withdrawals_query, $group_id
                     <div class="stats-card bg-white p-6 rounded-lg shadow cursor-pointer">
                         <div class="flex justify-between items-center">
                             <div>
-                                <h3 class="text-white-500 font-semibold">Withdrawals</h3>
+                                <h3 class="text-white-500 font-semibold">My Withdrawals</h3>
                                 <p class="text-2xl font-bold" id="withdrawals-counter">
                                     $<?php echo number_format($total_withdrawals, 2); ?></p>
                             </div>
@@ -211,6 +232,18 @@ $total_withdrawals = fetchSingleValue($conn, $total_withdrawals_query, $group_id
                             </div>
                         </div>
                     </div>
+                    <div class="stats-card savings-card bg-white p-6 rounded-lg shadow cursor-pointer">
+    <div class="flex justify-between items-center">
+        <div>
+            <h3 class="text-white-500 font-semibold">My Savings</h3>
+            <p class="text-2xl font-bold" id="my-savings-counter">
+                $<?php echo number_format($my_savings, 2); ?></p>
+        </div>
+        <div class="text-2xl text-gray-400">
+            <i class="fas fa-wallet"></i>
+        </div>
+    </div>
+</div>
                 </div>
 
                 <!-- Graph or chart showing code -->
@@ -240,7 +273,8 @@ $total_withdrawals = fetchSingleValue($conn, $total_withdrawals_query, $group_id
             'withdrawals-card',
             'emergency-card', 
             'loans-card', 
-            'members-card'
+            'members-card',
+            'mysavings-card'
         ];
 
         cards.forEach((card, index) => {
@@ -275,6 +309,7 @@ $total_withdrawals = fetchSingleValue($conn, $total_withdrawals_query, $group_id
             const emergencyFund = <?php echo json_encode($emergency_fund); ?>;
             const dueLoans = <?php echo json_encode($due_loans); ?>;
             const totalWithdrawals = <?php echo json_encode($total_withdrawals); ?>;
+            const mysavings = <?php echo json_encode($my_savings); ?>;
 
 
             // Animate counters
@@ -283,6 +318,7 @@ $total_withdrawals = fetchSingleValue($conn, $total_withdrawals_query, $group_id
             animateCounter(document.getElementById('fund-counter'), emergencyFund, 2000, 'BDT ');
             animateCounter(document.getElementById('loans-counter'), dueLoans, 2000, 'BDT ');
             animateCounter(document.getElementById('withdrawals-counter'), totalWithdrawals, 2000, 'BDT ');
+            animateCounter(document.getElementById('my-savings-counter'), mysavings, 2000, 'BDT ');
 
             // Animate poll bars
             document.querySelectorAll('.poll-option').forEach(option => {

@@ -3,6 +3,7 @@ session_start();
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,7 @@ session_start();
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
+
 <body class="bg-gray-100">
     <div class="min-h-screen p-6">
         <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
@@ -23,9 +25,9 @@ session_start();
                 <section>
                     <h2 class="text-xl font-semibold mb-3">1. Loan Terms</h2>
                     <div class="space-y-3">
-                        <p>1.1. The minimum loan amount is BDT 500 and the maximum is BDT 2,000.</p>
+                        <p>1.1. The minimum loan amount is BDT 0 and the maximum is upto Emergency Fund.</p>
                         <p>1.2. Loans must be repaid within the specified return date.</p>
-                        <p>1.3. Late payments may result in penalties as determined by the group policy.</p>
+                        <p>1.3. Late payments may result in penalties as determined by the group members.</p>
                     </div>
                 </section>
 
@@ -67,15 +69,18 @@ session_start();
             </div>
 
             <div class="mt-8 border-t pt-6">
-                <p class="text-gray-600">For any questions about these terms, please contact your group administrator or our support team.</p>
+                <p class="text-gray-600">For any questions about these terms, please contact your group administrator or
+                    our support team.</p>
             </div>
 
             <div class="mt-6">
-                <button onclick="window.close()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                <button onclick="window.close()"
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
                     Close Window
                 </button>
             </div>
         </div>
     </div>
 </body>
+
 </html>

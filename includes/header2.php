@@ -158,6 +158,12 @@ if ($result_user) {
             animation: glow 2s infinite;
             color: #ffd700;
         }
+
+        .logo-image {
+            max-height: 3rem;
+            width: auto;
+            object-fit: contain;
+        }
     </style>
 </head>
 
@@ -168,7 +174,7 @@ if ($result_user) {
                 <!-- Logo -->
                 <div class="logo flex items-center space-x-4">
                     <a href="/test_project/user_landing_page.php" class="flex items-center">
-                        Cholo<span class="brand">Save</span>
+                        <img src="/test_project/includes/project_logo1.png" alt="CholoSave Logo" class="logo-image">
                     </a>
                 </div>
 

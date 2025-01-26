@@ -23,9 +23,9 @@ session_start();
                 <section>
                     <h2 class="text-xl font-semibold mb-3">1. Loan Terms</h2>
                     <div class="space-y-3">
-                        <p>1.1. The minimum loan amount is BDT 500 and the maximum is BDT 2,000.</p>
+                        <p>1.1. The minimum loan amount is BDT 0 and the maximum is upto Emergency Fund.</p>
                         <p>1.2. Loans must be repaid within the specified return date.</p>
-                        <p>1.3. Late payments may result in penalties as determined by the group policy.</p>
+                        <p>1.3. Late payments may result in penalties as determined by the group members.</p>
                     </div>
                 </section>
 

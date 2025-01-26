@@ -26,7 +26,7 @@ try {
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     while ($group = $result->fetch_assoc()) {
         $group_id = $group['group_id'];
         $group_data = [
@@ -50,21 +50,30 @@ try {
         $contribution = $stmt->get_result()->fetch_assoc();
         $group_data['contribution'] = $contribution['total_contribution'];
 
-        // Get loans amount
-        $query = "
-        SELECT 
-            COALESCE(SUM(lr.amount), 0) as total_loans,
-            gm.time_period_remaining as remaining_installments
-        FROM loan_request lr
-        JOIN group_membership gm ON lr.group_id = gm.group_id AND lr.user_id = gm.user_id
-        WHERE lr.user_id = ? AND lr.group_id = ? AND lr.status = 'approved'
-    ";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("ii", $user_id, $group_id);
-    $stmt->execute();
-    $loans = $stmt->get_result()->fetch_assoc();
-    $group_data['loans'] = $loans['total_loans'];
-    $group_data['remaining_installments'] = $loans['remaining_installments'];
+        // Get total loan amount
+        $query_loans = "
+SELECT 
+    COALESCE(SUM(amount), 0) as total_loans
+FROM loan_request
+WHERE user_id = ? AND group_id = ? AND status = 'approved'
+";
+        $stmt_loans = $conn->prepare($query_loans);
+        $stmt_loans->bind_param("ii", $user_id, $group_id);
+        $stmt_loans->execute();
+        $loan_result = $stmt_loans->get_result()->fetch_assoc();
+        $group_data['loans'] = $loan_result['total_loans'];
+
+        // Get remaining installments
+        $query_installments = "
+SELECT time_period_remaining as remaining_installments
+FROM group_membership
+WHERE user_id = ? AND group_id = ?
+";
+        $stmt_installments = $conn->prepare($query_installments);
+        $stmt_installments->bind_param("ii", $user_id, $group_id);
+        $stmt_installments->execute();
+        $installment_result = $stmt_installments->get_result()->fetch_assoc();
+        $group_data['remaining_installments'] = $installment_result['remaining_installments'];
 
         // Get withdrawal amount
         $query = "
@@ -99,6 +108,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -106,6 +116,7 @@ try {
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
     <div class="container mx-auto p-6">
         <!-- Header Section -->
@@ -121,8 +132,10 @@ try {
                     <i class="fas fa-users text-gray-400 text-5xl"></i>
                 </div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">No Group Data Available</h2>
-                <p class="text-gray-600 mb-6">You are currently not a member of any groups or there is no activity to display.</p>
-                <a href="/test_project/groups.php" class="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                <p class="text-gray-600 mb-6">You are currently not a member of any groups or there is no activity to
+                    display.</p>
+                <a href="/test_project/groups.php"
+                    class="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
                     Join a Group
                 </a>
             </div>
@@ -147,7 +160,7 @@ try {
                                     <div>
                                         <p class="text-sm text-gray-500">Total Contribution</p>
                                         <p class="text-xl font-bold text-green-600">
-                                            $<?= number_format($group['contribution'], 2) ?>
+                                            BDT <?= number_format($group['contribution'], 2) ?>
                                         </p>
                                     </div>
                                     <div class="bg-green-100 p-3 rounded-full">
@@ -162,7 +175,7 @@ try {
                                     <div>
                                         <p class="text-sm text-gray-500">Active Loans</p>
                                         <p class="text-xl font-bold text-red-600">
-                                            $<?= number_format($group['loans'], 2) ?>
+                                            BDT <?= number_format($group['loans'], 2) ?>
                                         </p>
                                     </div>
                                     <div class="bg-red-100 p-3 rounded-full">
@@ -175,9 +188,9 @@ try {
                             <div class="bg-gray-50 rounded-lg p-4">
                                 <div class="flex items-center justify-between">
                                     <div>
-                                        <p class="text-sm text-gray-500">Pending Installments</p>
+                                        <p class="text-sm text-gray-500">Remaining Installments</p>
                                         <p class="text-xl font-bold text-orange-600">
-                                            <?= $group['remaining_installments'] ?>
+                                            <?= number_format($group['remaining_installments']) ?>
                                         </p>
                                     </div>
                                     <div class="bg-orange-100 p-3 rounded-full">
@@ -192,7 +205,7 @@ try {
                                     <div>
                                         <p class="text-sm text-gray-500">Total Withdrawals</p>
                                         <p class="text-xl font-bold text-purple-600">
-                                            $<?= number_format($group['withdraw_amount'], 2) ?>
+                                            BDT <?= number_format($group['withdraw_amount'], 2) ?>
                                         </p>
                                     </div>
                                     <div class="bg-purple-100 p-3 rounded-full">
@@ -207,7 +220,7 @@ try {
                                     <div>
                                         <p class="text-sm text-gray-500">Group Investments</p>
                                         <p class="text-xl font-bold text-blue-600">
-                                            $<?= number_format($group['total_investments'], 2) ?>
+                                            BDT <?= number_format($group['total_investments'], 2) ?>
                                         </p>
                                     </div>
                                     <div class="bg-blue-100 p-3 rounded-full">
@@ -217,7 +230,7 @@ try {
                             </div>
 
                             <!-- Quick Actions -->
-                            <div class="bg-gray-50 rounded-lg p-4">
+                            <!-- <div class="bg-gray-50 rounded-lg p-4">
                                 <div class="flex gap-2">
                                     <a href="#" class="flex-1 bg-blue-500 text-white text-center py-2 px-4 rounded hover:bg-blue-600 transition-colors">
                                         Details
@@ -226,7 +239,7 @@ try {
                                         Contribute
                                     </a>
                                 </div>
-                            </div>
+                            </div> -->
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -234,6 +247,7 @@ try {
         <?php endif; ?>
     </div>
 </body>
+
 </html>
 
 <?php include 'includes/new_footer.php'; ?>

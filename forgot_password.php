@@ -1,14 +1,12 @@
 <?php
-
 ob_start();
-// forgot_password.php
 include 'db.php';
-include 'vendor/autoload.php'; // For PHPMailer
+include 'vendor/autoload.php'; 
 include 'includes/new_header.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-// Start a session if not already started
+
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
@@ -30,7 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($result->num_rows > 0) {
         // Generate OTP
         $otp = sprintf("%06d", mt_rand(1, 999999));
-        $otp_expiry = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+
+        date_default_timezone_set('Asia/Dhaka');
+        // Set expiry to 2 minutes from now
+        $otp_expiry = date('Y-m-d H:i:s', strtotime('+2 minutes'));
 
         // Store OTP in database
         $update_query = "UPDATE users SET otp = ?, otp_expiry = ? WHERE email = ?";
@@ -53,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mail->addAddress($email);
             $mail->isHTML(true);
             $mail->Subject = 'Password Reset OTP';
-            $mail->Body = "Your OTP for password reset is: <b>$otp</b>. This OTP will expire in 15 minutes.";
+            $mail->Body = "Your OTP for password reset is: <b>$otp</b>. This OTP will expire in 2 minutes.";
 
             $mail->send();
            // Store email in session for OTP verification
@@ -73,6 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ob_end_flush();
 }
 ?>
+
+
+
 <!DOCTYPE html>
 <html>
 <head>
